@@ -3,8 +3,5 @@
     "builder": "NIXPACKS",
     "buildCommand": "npm run build",
     "outputDirectory": "dist"
-  },
-  "engines": {
-    "node": "20.x"
   }
 }
