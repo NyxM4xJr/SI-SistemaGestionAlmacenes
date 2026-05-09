@@ -2,7 +2,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
-import { LogOut, User as UserIcon, Users } from "lucide-react";
+import { LogOut, User as UserIcon, Users, Package } from "lucide-react"; //Agregamos package para el cu7...
+
 
 /**
  * AppHeader - Barra de Navegación Principal.
@@ -13,6 +14,7 @@ import { LogOut, User as UserIcon, Users } from "lucide-react";
  * Características:
  * - Logo de la aplicación (enlace a /perfil).
  * - Botón "Perfil" (siempre visible).
+ * - Botón "Insumos" (visible para Admin y Chef).
  * - Botón "Usuarios" (SOLO visible para administradores).
  * - Botón "Salir" para cerrar sesión.
  * - Resalta el botón de la página actual.
@@ -21,7 +23,7 @@ import { LogOut, User as UserIcon, Users } from "lucide-react";
  * Estado:
  * - Si NO hay usuario autenticado, el header NO se renderiza (return null).
  * 
- * Fecha: 05/05/26
+ * Fecha: 09/05/26
  */
 
 export default function AppHeader() {
@@ -45,6 +47,15 @@ export default function AppHeader() {
             onClick={() => navigate("/perfil")}
           >
             <UserIcon className="mr-2 h-5 w-5" /> Perfil
+          </Button>
+          {/* NUEVO: Botón Insumos - CU07 Ciclo 2 */}
+          <Button
+            variant={pathname.startsWith("/insumos") ? "default" : "ghost"}
+            size={isChef ? "lg" : "default"}
+            className={isChef ? "chef-touch px-6" : ""}
+            onClick={() => navigate("/insumos")}
+          >
+            <Package className="mr-2 h-5 w-5" /> Insumos
           </Button>
           {user.rol === "administrador" && (
             <Button

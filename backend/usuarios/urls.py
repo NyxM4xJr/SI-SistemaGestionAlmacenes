@@ -12,6 +12,7 @@ from .views import (
     AdminUpdateUserView,   
     LogPasswordResetView, # NUEVO
 )
+from .insumo_views import InsumoListView, InsumoDetailView
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -57,4 +58,11 @@ urlpatterns = [
     
     # Bitácora
     path('auth/log-password-reset/', LogPasswordResetView.as_view(), name='log-password-reset'),
+
+    # ============================================
+    #             ---- CICLO #2 ----
+    # ============================================
+    # ---- CU7 ----
+    path('insumos/', InsumoListView.as_view(), name='insumo-list'),
+    path('insumos/<int:insumo_id>/', InsumoDetailView.as_view(), name='insumo-detail'),
 ]
