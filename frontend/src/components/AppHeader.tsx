@@ -1,8 +1,21 @@
+/**
+ * ============================================================
+ * ARCHIVO: frontend/src/components/AppHeader.tsx
+ * MODIFICADO: 10/05/26 - Reestructuración para Sidebar (Ciclo 2)
+ * 
+ * CAMBIOS:
+ * - Eliminados botones de navegación antiguos (Insumos, Usuarios)
+ * - Agregado componente Sidebar con ícono hamburguesa
+ * - Mantenidos solo: Logo, Sidebar, Perfil, Salir
+ * ============================================================
+ */
+
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
-import { LogOut, User as UserIcon, Users, Package } from "lucide-react"; //Agregamos package para el cu7...
+import Sidebar from "./Sidebar";
+import { LogOut, User as UserIcon, Users} from "lucide-react"; //Agregamos package para el cu7...
 
 
 /**
@@ -10,15 +23,6 @@ import { LogOut, User as UserIcon, Users, Package } from "lucide-react"; //Agreg
  * 
  * Este componente muestra la barra de navegación superior que aparece
  * en todas las páginas cuando el usuario está autenticado.
- * 
- * Características:
- * - Logo de la aplicación (enlace a /perfil).
- * - Botón "Perfil" (siempre visible).
- * - Botón "Insumos" (visible para Admin y Chef).
- * - Botón "Usuarios" (SOLO visible para administradores).
- * - Botón "Salir" para cerrar sesión.
- * - Resalta el botón de la página actual.
- * - Diseño responsivo con Tailwind CSS.
  * 
  * Estado:
  * - Si NO hay usuario autenticado, el header NO se renderiza (return null).
@@ -29,49 +33,24 @@ import { LogOut, User as UserIcon, Users, Package } from "lucide-react"; //Agreg
 export default function AppHeader() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
 
   if (!user) return null;
 
-  const isChef = user.rol === "chef";
-
   return (
     <header className="bg-card border-b border-border shadow-card sticky top-0 z-40">
-      <div className="container flex items-center justify-between py-4">
-        <Link to="/perfil"><Logo size={isChef ? "md" : "sm"} /></Link>
+      <div className="container flex items-center justify-between py-3">
+        <div className="flex items-center gap-3">
+          <Sidebar />
+          <Link to="/perfil">
+            <Logo size="sm" />
+          </Link>
+        </div>
         <nav className="flex items-center gap-2">
-          <Button
-            variant={pathname === "/perfil" ? "default" : "ghost"}
-            size={isChef ? "lg" : "default"}
-            className={isChef ? "chef-touch px-6" : ""}
-            onClick={() => navigate("/perfil")}
-          >
-            <UserIcon className="mr-2 h-5 w-5" /> Perfil
+          <Button variant="ghost" size="icon" onClick={() => navigate("/perfil")} title="Perfil">
+            <UserIcon className="h-5 w-5" />
           </Button>
-          {/* NUEVO: Botón Insumos - CU07 Ciclo 2 */}
-          <Button
-            variant={pathname.startsWith("/insumos") ? "default" : "ghost"}
-            size={isChef ? "lg" : "default"}
-            className={isChef ? "chef-touch px-6" : ""}
-            onClick={() => navigate("/insumos")}
-          >
-            <Package className="mr-2 h-5 w-5" /> Insumos
-          </Button>
-          {user.rol === "administrador" && (
-            <Button
-              variant={pathname === "/admin" ? "default" : "ghost"}
-              onClick={() => navigate("/admin")}
-            >
-              <Users className="mr-2 h-5 w-5" /> Usuarios
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size={isChef ? "lg" : "default"}
-            className={isChef ? "chef-touch px-6" : ""}
-            onClick={() => { logout(); navigate("/login"); }}
-          >
-            <LogOut className="mr-2 h-5 w-5" /> Salir
+          <Button variant="outline" size="sm" onClick={() => { logout(); navigate("/login"); }}>
+            <LogOut className="mr-1 h-4 w-4" /> Salir
           </Button>
         </nav>
       </div>

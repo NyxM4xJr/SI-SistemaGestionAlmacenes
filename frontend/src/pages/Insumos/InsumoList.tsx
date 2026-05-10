@@ -153,10 +153,10 @@ export default function InsumoList() {
                     <TableCell>{i.vencimiento_dias} días</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => navigate(`/insumos/${i.id}`)} title="Ver ficha técnica">
+                        <Button variant="ghost" size="icon" onClick={() => navigate(`/insumos/ficha?buscar=${encodeURIComponent(i.nombre)}`)} title="Ver ficha técnica">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => navigate(`/insumos/editar/${i.id}`)} title="Editar">
+                        <Button variant="ghost" size="icon" onClick={() => navigate(`/insumos/${i.id}/editar`)} title="Editar">
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDelete(i.id!, i.nombre)} title="Eliminar">

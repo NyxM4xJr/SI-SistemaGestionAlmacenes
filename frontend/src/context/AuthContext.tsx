@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 // Roles del sistema (según documento del proyecto)
-export type Role = "chef" | "administrador" | "usuario";
+export type Role = "chef" | "administrador" | "gerente" | "usuario";
 
 export interface User {
   id: string;
@@ -22,6 +22,8 @@ interface AuthContextValue {
   toggleUserActive: (id: string) => Promise<void>;
   requestReset: (email: string) => Promise<{ ok: boolean; error?: string }>;
   refreshUsers: () => Promise<void>;
+  createUser: (data: { nombre: string; email: string; password: string; rol: Role }) => Promise<{ ok: boolean; error?: string }>;
+  updateUser: (id: string, data: { nombre?: string; email?: string }) => Promise<{ ok: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -281,6 +283,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const createUser: AuthContextValue["createUser"] = async (data) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return { ok: false, error: "No autenticado" };
+
+    try {
+      const response = await fetch(`${API_URL}/auth/users/create/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        return { ok: false, error: error.error || "Error al crear usuario" };
+      }
+
+      await refreshUsers();
+      return { ok: true };
+    } catch (error) {
+      console.error("Create user error:", error);
+      return { ok: false, error: "Error de conexión" };
+    }
+  };
+
+  const updateUser: AuthContextValue["updateUser"] = async (id, data) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return { ok: false, error: "No autenticado" };
+
+    try {
+      const response = await fetch(`${API_URL}/auth/users/${id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        return { ok: false, error: error.error || "Error al actualizar usuario" };
+      }
+
+      await refreshUsers();
+      return { ok: true };
+    } catch (error) {
+      console.error("Update user error:", error);
+      return { ok: false, error: "Error de conexión" };
+    }
+  };
+
   if (loading) {
     return null;
   }
@@ -298,6 +354,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         toggleUserActive,
         requestReset,
         refreshUsers,
+        createUser,
+        updateUser,
       }}
     >
       {children}
