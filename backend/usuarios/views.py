@@ -492,7 +492,7 @@ class ChangeUserRoleView(APIView):
             )
         
         nuevo_rol = request.data.get('rol')
-        if nuevo_rol not in ['chef', 'administrador', 'usuario']:
+        if nuevo_rol not in ['chef', 'administrador', 'gerente', 'usuario']:
             return Response(
                 {'error': 'Rol inválido'}, 
                 status=status.HTTP_400_BAD_REQUEST
@@ -637,7 +637,7 @@ class AdminCreateUserView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        if rol not in ['chef', 'administrador', 'usuario']:
+        if rol not in ['chef', 'administrador', 'gerente', 'usuario']:
             return Response(
                 {'error': 'Rol inválido'}, 
                 status=status.HTTP_400_BAD_REQUEST

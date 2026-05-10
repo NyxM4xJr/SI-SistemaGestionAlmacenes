@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth, Role } from "@/context/AuthContext";
-import { ChefHat, ShieldCheck, User, LogOut, Edit3, Save, X, Mail, User as UserIcon } from "lucide-react";
+import { ChefHat, ShieldCheck, User,Briefcase, LogOut, Edit3, Save, X, Mail, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -35,7 +35,8 @@ import { toast } from "sonner";
 const ROLE_META: Record<Role, { label: string; icon: React.ElementType; color: string }> = {
   chef: { label: "Chef", icon: ChefHat, color: "from-primary to-primary-glow" },
   administrador: { label: "Administrador", icon: ShieldCheck, color: "from-accent to-primary" },
-  usuario: { label: "Usuario", icon: User, color: "from-primary-glow to-primary" },
+  usuario: { label: "Ayudante de Cocina", icon: User, color: "from-primary-glow to-primary" },
+  gerente:  { label: "Gerente", icon: Briefcase, color: "from-primary-glow to-primary" },
 };
 
 export default function Profile() {

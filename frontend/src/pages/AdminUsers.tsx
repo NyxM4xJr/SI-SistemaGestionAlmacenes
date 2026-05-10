@@ -6,23 +6,28 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Users, UserCheck, UserX, ChefHat, ShieldCheck, User, UserPlus } from "lucide-react";
+import { Users, UserCheck, UserX, ChefHat, ShieldCheck, User, UserPlus , Briefcase} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // ✅ Roles actualizados
-const ROLE_ICON: Record<Role, React.ElementType> = { 
-  chef: ChefHat, 
-  administrador: ShieldCheck, 
-  usuario: User 
+const ROLE_ICON: Record<Role, React.ElementType> = {
+  chef: ChefHat,
+  administrador: ShieldCheck,
+  gerente: Briefcase,        // ← Usa Briefcase de lucide-react
+  usuario: User,
 };
 
-const ROLE_LABEL: Record<Role, string> = { 
-  chef: "Chef", 
-  administrador: "Administrador", 
-  usuario: "Usuario" 
+const ROLE_LABEL: Record<Role, string> = {
+  chef: "Chef",
+  administrador: "Administrador",
+  gerente: "Gerente",        // ← Agregar
+  usuario: "Ayudante de Cocina",
 };
+
 
 export default function AdminUsers() {
   const { users, changeUserRole, toggleUserActive, user: me } = useAuth();
+  const navigate = useNavigate();
 
   // ✅ Filtrar usuarios activos (simulado por ahora)
   const activeCount = users.length; // Cuando el backend tenga "activo", cambiar
@@ -42,24 +47,21 @@ export default function AdminUsers() {
             </div>
           </div>
           
-          {/* 🔥 BOTÓN CREAR USUARIO */}
           <Button 
             size="lg" 
             className="shadow-soft"
-            onClick={() => {
-              // Por ahora, solo muestra un mensaje
-              toast.info("Funcionalidad de creación de usuarios en desarrollo");
-            }}
+            onClick={() => navigate("/admin/usuarios/crear")}
           >
             <UserPlus className="mr-2 h-5 w-5" /> Crear Usuario
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 my-6">
+        <div className="grid grid-cols-5 md:grid-cols-4 gap-3 my-6">
           <StatCard label="Total" value={users.length} />
           <StatCard label="Activos" value={activeCount} />
           <StatCard label="Chefs" value={users.filter((u) => u.rol === "chef").length} />
           <StatCard label="Admins" value={users.filter((u) => u.rol === "administrador").length} />
+          <StatCard label="Gerentes" value={users.filter((u) => u.rol === "gerente").length} />
         </div>
 
         <div className="bg-card rounded-3xl shadow-card overflow-hidden">
@@ -117,6 +119,7 @@ export default function AdminUsers() {
                           <SelectContent>
                             <SelectItem value="chef">Chef</SelectItem>
                             <SelectItem value="administrador">Administrador</SelectItem>
+                            <SelectItem value="gerente">Gerente</SelectItem>
                             <SelectItem value="usuario">Usuario</SelectItem>
                           </SelectContent>
                         </Select>
