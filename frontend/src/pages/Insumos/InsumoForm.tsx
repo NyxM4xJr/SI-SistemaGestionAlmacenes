@@ -97,7 +97,7 @@ export default function InsumoForm() {
   return (
     <div className="min-h-screen bg-gradient-soft">
       <AppHeader />
-      <main className="container py-8 max-w-2xl">
+      <main className="container py-8 px-4 max-w-2xl">
         <Button variant="ghost" onClick={() => navigate("/insumos")} className="mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" /> Volver
         </Button>

@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Users, UserCheck, UserX, ChefHat, ShieldCheck, User, UserPlus , Briefcase, Pencil} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 // ✅ Roles actualizados
 const ROLE_ICON: Record<Role, React.ElementType> = {
@@ -26,8 +27,13 @@ const ROLE_LABEL: Record<Role, string> = {
 
 
 export default function AdminUsers() {
-  const { users, changeUserRole, toggleUserActive, user: me } = useAuth();
+  const { users, changeUserRole, toggleUserActive, user: me, refreshUsers } = useAuth();
   const navigate = useNavigate();
+
+  // Forzar recarga al montar
+  useEffect(() => {
+    refreshUsers();
+  }, []);  // ← Array vacío = solo al montar
 
   // ✅ Filtrar usuarios activos (simulado por ahora)
   const activeCount = users.length; // Cuando el backend tenga "activo", cambiar
@@ -65,95 +71,97 @@ export default function AdminUsers() {
         </div>
 
         <div className="bg-card rounded-3xl shadow-card overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-secondary/50 hover:bg-secondary/50">
-                <TableHead className="font-bold">Nombre</TableHead>
-                <TableHead className="font-bold">Email</TableHead>
-                <TableHead className="font-bold">Rol</TableHead>
-                <TableHead className="font-bold">Estado</TableHead>
-                <TableHead className="font-bold text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((u) => {
-                const Icon = ROLE_ICON[u.rol] || User;
-                const isMe = u.id === me?.id;
-                return (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-semibold">
-                      {u.nombre} {isMe && <span className="text-xs text-primary ml-2">(tú)</span>}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                        <Icon className="h-4 w-4" /> {ROLE_LABEL[u.rol] || u.rol}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {u.activo !== false ? (
-                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-success/15 text-success">
-                          <span className="h-2 w-2 rounded-full bg-success" />
-                          Activo
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-secondary/50 hover:bg-secondary/50">
+                  <TableHead className="font-bold">Nombre</TableHead>
+                  <TableHead className="font-bold">Email</TableHead>
+                  <TableHead className="font-bold">Rol</TableHead>
+                  <TableHead className="font-bold">Estado</TableHead>
+                  <TableHead className="font-bold text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((u) => {
+                  const Icon = ROLE_ICON[u.rol] || User;
+                  const isMe = u.id === me?.id;
+                  return (
+                    <TableRow key={u.id}>
+                      <TableCell className="font-semibold">
+                        {u.nombre} {isMe && <span className="text-xs text-primary ml-2">(tú)</span>}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                          <Icon className="h-4 w-4" /> {ROLE_LABEL[u.rol] || u.rol}
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-destructive/15 text-destructive">
-                          <span className="h-2 w-2 rounded-full bg-destructive" />
-                          Inactivo
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end items-center gap-2">
-                        {/* NUEVO: Botón Editar */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate(`/admin/usuarios/${u.id}/editar`)}
-                          title="Editar usuario"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Select
-                          value={u.rol}
-                          onValueChange={(v: Role) => {
-                            changeUserRole(u.id, v);
-                            toast.success(`Rol actualizado a ${ROLE_LABEL[v]}`);
-                          }}
-                          disabled={isMe}
-                        >
-                          <SelectTrigger className="w-[160px]">
-                            <SelectValue placeholder="Cambiar Rol" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="chef">Chef</SelectItem>
-                            <SelectItem value="administrador">Administrador</SelectItem>
-                            <SelectItem value="gerente">Gerente</SelectItem>
-                            <SelectItem value="usuario">Usuario</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          variant={u.activo !== false ? "outline" : "default"}
-                          size="sm"
-                          disabled={isMe}
-                          onClick={() => {
-                            toggleUserActive(u.id);
-                            toast.success(u.activo !== false ? "Usuario desactivado" : "Usuario activado");
-                          }}
-                        >
-                          {u.activo !== false ? (
-                            <><UserX className="mr-1 h-4 w-4" /> Desactivar</>
-                          ) : (
-                            <><UserCheck className="mr-1 h-4 w-4" /> Activar</>
-                          )}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                      </TableCell>
+                      <TableCell>
+                        {u.activo !== false ? (
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-success/15 text-success">
+                            <span className="h-2 w-2 rounded-full bg-success" />
+                            Activo
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-destructive/15 text-destructive">
+                            <span className="h-2 w-2 rounded-full bg-destructive" />
+                            Inactivo
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end items-center gap-1 flex-wrap">
+                          {/* NUEVO: Botón Editar */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/admin/usuarios/${u.id}/editar`)}
+                            title="Editar usuario"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Select
+                            value={u.rol}
+                            onValueChange={(v: Role) => {
+                              changeUserRole(u.id, v);
+                              toast.success(`Rol actualizado a ${ROLE_LABEL[v]}`);
+                            }}
+                            disabled={isMe}
+                          >
+                            <SelectTrigger className="w-[160px]">
+                              <SelectValue placeholder="Cambiar Rol" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="chef">Chef</SelectItem>
+                              <SelectItem value="administrador">Administrador</SelectItem>
+                              <SelectItem value="gerente">Gerente</SelectItem>
+                              <SelectItem value="usuario">Usuario</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            variant={u.activo !== false ? "outline" : "default"}
+                            size="sm"
+                            disabled={isMe}
+                            onClick={() => {
+                              toggleUserActive(u.id);
+                              toast.success(u.activo !== false ? "Usuario desactivado" : "Usuario activado");
+                            }}
+                          >
+                            {u.activo !== false ? (
+                              <><UserX className="mr-1 h-4 w-4" /> Desactivar</>
+                            ) : (
+                              <><UserCheck className="mr-1 h-4 w-4" /> Activar</>
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </main>
     </div>

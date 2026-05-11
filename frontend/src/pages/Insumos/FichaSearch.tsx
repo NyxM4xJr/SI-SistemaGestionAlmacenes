@@ -10,9 +10,6 @@
  * técnica. Muestra una lista ultra simplificada con solo nombre
  * y categoría. Al seleccionar uno, muestra su detalle completo.
  * 
- * PENDIENTE: Realmentar darle el uso que corresponde a la ficha técnica..., 
- * mientras esto muestra informacion demasiado básica para considerarse
- * una ficha técnica.
  * ============================================================
  */
 
@@ -65,7 +62,7 @@ export default function FichaSearch() {
   return (
     <div className="min-h-screen bg-gradient-soft">
       <AppHeader />
-      <main className="container py-8 max-w-3xl">
+      <main className="container py-8 px-4 max-w-3xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="h-12 w-12 rounded-2xl bg-primary/10 grid place-items-center">
             <FileText className="h-6 w-6 text-primary" />

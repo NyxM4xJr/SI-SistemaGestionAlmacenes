@@ -130,7 +130,7 @@ export default function Sidebar() {
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 sm:w-80 md:w-96 p-0">
+      <SheetContent side="left" className="w-[85vw] max-w-sm sm:w-80 md:w-96 p-0">
         <SheetTitle>
           <VisuallyHidden>Menú de Navegación</VisuallyHidden>
         </SheetTitle>

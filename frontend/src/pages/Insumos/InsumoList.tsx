@@ -123,52 +123,54 @@ export default function InsumoList() {
 
         {/* Tabla */}
         <div className="bg-card rounded-3xl shadow-card overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-secondary/50 hover:bg-secondary/50">
-                <TableHead className="font-bold">Nombre</TableHead>
-                <TableHead className="font-bold">Categoría</TableHead>
-                <TableHead className="font-bold">Origen</TableHead>
-                <TableHead className="font-bold">Vencimiento</TableHead>
-                <TableHead className="font-bold text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                    {search ? "No se encontraron insumos con ese nombre" : "No hay insumos registrados"}
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-secondary/50 hover:bg-secondary/50">
+                  <TableHead className="font-bold">Nombre</TableHead>
+                  <TableHead className="font-bold">Categoría</TableHead>
+                  <TableHead className="font-bold">Origen</TableHead>
+                  <TableHead className="font-bold">Vencimiento</TableHead>
+                  <TableHead className="font-bold text-right">Acciones</TableHead>
                 </TableRow>
-              ) : (
-                filtered.map((i) => (
-                  <TableRow key={i.id}>
-                    <TableCell className="font-semibold">{i.nombre}</TableCell>
-                    <TableCell>
-                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${CATEGORY_BADGES[i.categoria] || "bg-gray-100 text-gray-700"}`}>
-                        {i.categoria}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{i.origen}</TableCell>
-                    <TableCell>{i.vencimiento_dias} días</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => navigate(`/insumos/ficha?buscar=${encodeURIComponent(i.nombre)}`)} title="Ver ficha técnica">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => navigate(`/insumos/${i.id}/editar`)} title="Editar">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(i.id!, i.nombre)} title="Eliminar">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      {search ? "No se encontraron insumos con ese nombre" : "No hay insumos registrados"}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  filtered.map((i) => (
+                    <TableRow key={i.id}>
+                      <TableCell className="font-semibold">{i.nombre}</TableCell>
+                      <TableCell>
+                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${CATEGORY_BADGES[i.categoria] || "bg-gray-100 text-gray-700"}`}>
+                          {i.categoria}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{i.origen}</TableCell>
+                      <TableCell>{i.vencimiento_dias} días</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1 flex-wrap">
+                          <Button variant="ghost" size="icon" onClick={() => navigate(`/insumos/ficha?buscar=${encodeURIComponent(i.nombre)}`)} title="Ver ficha técnica">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => navigate(`/insumos/${i.id}/editar`)} title="Editar">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(i.id!, i.nombre)} title="Eliminar">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </main>
     </div>

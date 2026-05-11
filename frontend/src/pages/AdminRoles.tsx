@@ -39,7 +39,7 @@ export default function AdminRoles() {
   return (
     <div className="min-h-screen bg-gradient-soft">
       <AppHeader />
-      <main className="container py-8 max-w-4xl">
+      <main className="container py-8 px-4 max-w-4xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="h-12 w-12 rounded-2xl bg-primary/10 grid place-items-center">
             <ShieldCheck className="h-6 w-6 text-primary" />
