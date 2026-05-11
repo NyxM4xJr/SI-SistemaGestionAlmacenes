@@ -50,6 +50,22 @@ export default function UserForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validar contraseña si es creación
+    if (!isEditing) {
+      if (password.length < 8) {
+        toast.error("La contraseña debe tener al menos 8 caracteres");
+        return;
+      }
+      if (!/[A-Z]/.test(password)) {
+        toast.error("La contraseña debe contener al menos una mayúscula");
+        return;
+      }
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        toast.error("La contraseña debe contener al menos un carácter especial");
+        return;
+      }
+    }
+
     setLoading(true);
 
     const token = localStorage.getItem("access_token");
@@ -90,6 +106,7 @@ export default function UserForm() {
       }
 
       toast.success(isEditing ? "Usuario actualizado" : "Usuario creado");
+      setLoading(false);
       navigate("/admin/usuarios");
     } catch (err: any) {
       toast.error(err.message || "Error al guardar");

@@ -115,7 +115,7 @@ export default function Sidebar() {
         className={`w-full text-left p-2 rounded-lg text-sm transition-colors truncate ${
           node.path && isActive(node.path)
             ? "bg-primary/10 text-primary font-medium"
-            : "hover:bg-secondary/30 text-muted-foreground"
+            : "hover:bg-secondary/30 text-foreground"
         }`}
       >
         {node.label}
@@ -130,7 +130,7 @@ export default function Sidebar() {
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-80 p-0">
+      <SheetContent side="left" className="w-72 sm:w-80 md:w-96 p-0">
         <SheetTitle>
           <VisuallyHidden>Menú de Navegación</VisuallyHidden>
         </SheetTitle>

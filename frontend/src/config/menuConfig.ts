@@ -102,8 +102,8 @@ export const menuConfig: MenuNode[] = [
       },
       {
         id: "cu10",
-        label: "",
-        path: "/historial-precios",
+        label: "Historial de Precios",
+        path: "",
         roles: ["administrador", "gerente"],
       },
     ],

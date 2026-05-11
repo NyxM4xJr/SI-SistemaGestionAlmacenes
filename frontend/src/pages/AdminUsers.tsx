@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Users, UserCheck, UserX, ChefHat, ShieldCheck, User, UserPlus , Briefcase} from "lucide-react";
+import { Users, UserCheck, UserX, ChefHat, ShieldCheck, User, UserPlus , Briefcase, Pencil} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // ✅ Roles actualizados
@@ -56,7 +56,7 @@ export default function AdminUsers() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-5 md:grid-cols-4 gap-3 my-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 my-6">
           <StatCard label="Total" value={users.length} />
           <StatCard label="Activos" value={activeCount} />
           <StatCard label="Chefs" value={users.filter((u) => u.rol === "chef").length} />
@@ -105,6 +105,15 @@ export default function AdminUsers() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end items-center gap-2">
+                        {/* NUEVO: Botón Editar */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate(`/admin/usuarios/${u.id}/editar`)}
+                          title="Editar usuario"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         <Select
                           value={u.rol}
                           onValueChange={(v: Role) => {

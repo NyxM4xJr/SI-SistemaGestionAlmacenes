@@ -647,21 +647,20 @@ class AdminCreateUserView(APIView):
             supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
             
             # Crear usuario en Supabase Auth
+            # El trigger on_auth_user_created inserta automáticamente en public.usuario
             auth_response = supabase.auth.admin.create_user({
                 'email': email,
                 'password': password,
-                'email_confirm': True,  # Confirmar automáticamente
+                'email_confirm': True, #Sin necesidad de confirmacion 
                 'user_metadata': {'nombre': nombre, 'rol': rol}
             })
-            
-            # Insertar en tabla usuario
-            supabase.table('usuario').insert({
-                'id': auth_response.user.id,
+
+            # ACTUALIZAR el registro que el trigger ya creó (no insertar de nuevo)
+            supabase.table('usuario').update({
                 'nombre': nombre,
-                'email': email,
                 'rol': rol,
                 'activo': True
-            }).execute()
+            }).eq('id', auth_response.user.id).execute()
             
             return Response({
                 'message': 'Usuario creado exitosamente',
