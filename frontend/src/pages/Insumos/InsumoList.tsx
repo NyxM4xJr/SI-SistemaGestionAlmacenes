@@ -92,7 +92,7 @@ export default function InsumoList() {
       <AppHeader />
       <main className="container py-8 max-w-6xl">
         {/* Encabezado */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
           <div>
             <h1 className="text-3xl font-bold">Gestión de Insumos</h1>
             <p className="text-muted-foreground">Catálogo de productos gastronómicos</p>

@@ -1,15 +1,3 @@
-/**
- * ============================================================
- * ARCHIVO: frontend/src/App.tsx
- * MODIFICADO: 10/05/26 - Reestructuración de rutas (Ciclo 2)
- * 
- * CAMBIOS:
- * - Agregadas rutas para CU02, CU05, CU06, CU08, CU30
- * - Reorganizadas rutas existentes según nueva estructura de paquetes
- * - Rutas de CU futuros agregadas como placeholders comentados
- * ============================================================
- */
-
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -27,7 +15,6 @@ import UpdatePassword from "./pages/UpdatePassword";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
-
 // Páginas del Ciclo 2
 import AdminUsers from "./pages/AdminUsers";
 import UserForm from "./pages/UserForm";
@@ -39,12 +26,15 @@ import InsumoForm from "./pages/Insumos/InsumoForm";
 import InsumoDetail from "./pages/Insumos/InsumoDetail";
 import FichaSearch from "./pages/Insumos/FichaSearch";
 
-// TEMPORAL PARA LAS PAGINAS NO CREADAS AUN
+// Para páginas no creadas aún
 import Placeholder from "./pages/Placeholder";
 
-/*CU 12 GESTIONAR <STOCK*/
-import StockList from "./pages/Stock/StockList.tsx";
+// Stock
+import StockList from "./pages/Stock/StockList";
 import StockForm from "@/pages/Stock/StockForm";
+
+// CU12 - Lotes
+import Lotes from "./pages/Lotes";
 
 const queryClient = new QueryClient();
 
@@ -74,27 +64,23 @@ const App = () => (
 
             {/* PAQUETE 2: Gestión de Insumos */}
             <Route path="/insumos" element={<ProtectedRoute roles={["administrador", "chef"]}><InsumoList /></ProtectedRoute>} />
-
             <Route path="/insumos/crear" element={<ProtectedRoute roles={["administrador"]}><InsumoForm /></ProtectedRoute>} />
-            <Route path="/insumos/editar/:id" element={<ProtectedRoute roles={["administrador"]}><InsumoForm /></ProtectedRoute>} />
-            <Route path="/insumos/:id" element={<ProtectedRoute roles={["administrador", "chef"]}><InsumoDetail /></ProtectedRoute>} />
-
-            <Route path="/insumos/crear" element={<ProtectedRoute roles={["administrador", "chef"]}><InsumoForm /></ProtectedRoute>} />
             <Route path="/insumos/:id/editar" element={<ProtectedRoute roles={["administrador", "chef"]}><InsumoForm /></ProtectedRoute>} />
+            <Route path="/insumos/:id" element={<ProtectedRoute roles={["administrador", "chef"]}><InsumoDetail /></ProtectedRoute>} />
             <Route path="/insumos/ficha" element={<ProtectedRoute roles={["administrador", "chef", "gerente", "usuario"]}><FichaSearch /></ProtectedRoute>} />
 
-            {/* PAQUETE 2: Gestión de Stock */}
+            {/* PAQUETE 3: Inventario - Stock */}
+            <Route path="/stock" element={<ProtectedRoute roles={["administrador", "chef"]}><StockList /></ProtectedRoute>} />
+            <Route path="/stock/nuevo" element={<ProtectedRoute roles={["administrador", "chef"]}><StockForm /></ProtectedRoute>} />
+            <Route path="/stock/editar/:id" element={<ProtectedRoute roles={["administrador", "chef"]}><StockForm /></ProtectedRoute>} />
+            <Route path="/stock/ajuste" element={<ProtectedRoute roles={["administrador", "chef"]}><StockForm /></ProtectedRoute>} />
 
-            <Route path="/stock"element={<ProtectedRoute roles={["administrador", "chef"]}><StockList /></ProtectedRoute>}/>
-            <Route path="/stock/nuevo"element={<ProtectedRoute roles={["administrador", "chef"]}><StockForm /></ProtectedRoute>}/>
-            <Route path="/stock/editar/:id"element={<ProtectedRoute roles={["administrador", "chef"]}><StockForm /></ProtectedRoute>}/>
-            <Route path="/stock/ajuste"element={<ProtectedRoute roles={["administrador", "chef"]}><StockForm /></ProtectedRoute>}/>
+            {/* CU12 - Gestión de Lotes */}
+            <Route path="/lotes" element={<ProtectedRoute roles={["administrador"]}><Lotes /></ProtectedRoute>} />
 
-
+            {/* Placeholders para otros módulos */}
             <Route path="/estacionalidad" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/historial-precios" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/stock/ajuste" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/lotes" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/movimientos" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/alertas" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/cierre-turno" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
@@ -115,7 +101,6 @@ const App = () => (
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
-
           </Routes>
         </AuthProvider>
       </BrowserRouter>

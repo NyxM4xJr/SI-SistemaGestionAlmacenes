@@ -15,6 +15,7 @@ from .views import (
 from .insumo_views import InsumoListView, InsumoDetailView
 from .stock_views import StockListView, StockDetailView
 from .ficha_views import FichaTecnicaView
+from .bitacora_views import DetalleBitacoraListView
 
 
 """
@@ -65,15 +66,18 @@ urlpatterns = [
     # ============================================
     #             ---- CICLO #2 ----
     # ============================================
-    # ---- CU7 ----
+    # ---- CU7 GESTION DE INSUMOS ----
     path('insumos/', InsumoListView.as_view(), name='insumo-list'),
     path('insumos/<int:insumo_id>/', InsumoDetailView.as_view(), name='insumo-detail'),
 
-    # ---- CU8 ----
+    # ---- CU8 CONSULTAR FICHA TECNICA----
     path('insumos/<int:insumo_id>/ficha-tecnica/', FichaTecnicaView.as_view(), name='ficha-tecnica'),
 
     #=======CU 12 GESTION DE STOCK =======================
     path("stock/", StockListView.as_view()),
     path("stock/<int:stock_id>/", StockDetailView.as_view()),
+
+    # ----- CU30 BITACORA DET. -------
+    path('bitacora/completa/', DetalleBitacoraListView.as_view(), name='bitacora-completa'),
 
 ]

@@ -12,17 +12,24 @@ utilizando la API REST oficial.
 - La API de Supabase es escalable y profesional.
 
 Autor: Grupo 2 - INF342
-Fecha: Abril 2026
+Fecha: Abril 11/05/26
 Última modificación: Abril 2026 - Cambio a API de Supabase
 """
 
 from supabase import create_client
 from django.conf import settings
+from datetime import datetime, timezone, timedelta
 import logging
 
 # Configurar logger para este módulo
 # Esto permite ver mensajes de éxito/error en la consola de Django
 logger = logging.getLogger(__name__)
+
+# Zona horaria de Bolivia (UTC-4)
+BOLIVIA_TZ = timezone(timedelta(hours=-4))
+
+
+
 
 
 def obtener_ip_cliente(request) -> str:
@@ -108,41 +115,55 @@ def registrar_accion(usuario_id: str, usuario_email: str, accion: str, detalles:
         ... )
         True
     """
-    # 🔥 TEMPORAL: Verificar que la función se llama
     print(f"🔥🔥🔥 BITÁCORA LLAMADA: {usuario_email} - {accion}")
     try:
-        # 1. Crear cliente de Supabase usando las credenciales de settings
-        #    SUPABASE_URL y SUPABASE_KEY se cargan desde el archivo .env
         supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
         
-        # 2. Preparar los datos a insertar
-        #    La tabla 'bitacora' debe existir en Supabase con las columnas:
-        #    - usuario_id (uuid)
-        #    - usuario_email (text)
-        #    - accion (text)
-        #    - detalles (jsonb)
-        #    - fecha (timestamptz) - se genera automáticamente en Supabase
-        data = {
-            'usuario_id': usuario_id,
-            'usuario_email': usuario_email,
-            'accion': accion,
-            'detalles': detalles or {}  # Si no se proporcionan detalles, usar diccionario vacío
-            # 'fecha', tambien 'id' se omite porque Supabase la genera automáticamente (DEFAULT NOW())
-        }
+        fecha_bolivia = datetime.now(BOLIVIA_TZ).isoformat()
         
-        # 3. Insertar el registro en Supabase
-        response = supabase.table('bitacora').insert(data).execute()
-        
-        # 4. Verificar si la inserción fue exitosa
-        if response.data:
-            # Éxito: registrar en el logger de Django
-            logger.info(f"✅ Bitácora registrada en Supabase: {usuario_email} - {accion}")
-            return True
-        else:
-            # La API respondió pero sin datos (posible error de permisos o validación)
-            logger.error(f"❌ Error registrando bitácora: Respuesta vacía de Supabase. Detalles: {response}")
-            return False
+        # Decidir en qué tabla registrar según la acción
+        if accion in ['LOGIN', 'LOGOUT', 'LOGIN_FALLIDO', 'LOGIN_BLOQUEADO']:
+            # ============================================
+            # Registrar en bitacora (solo login/logout)
+            # ============================================
+            data = {
+                'usuario_id': usuario_id,
+                'usuario_email': usuario_email,
+                'accion': accion,
+                'detalles': detalles or {},
+                'fecha': fecha_bolivia,
+            }
+            response = supabase.table('bitacora').insert(data).execute()
             
+            if response.data:
+                logger.info(f"✅ Bitácora (LOGIN/LOGOUT): {usuario_email} - {accion}")
+                return True
+        
+        else:
+            # ============================================
+            # Registrar en detalle_bitacora (resto de acciones)
+            # ============================================
+            ip = detalles.get('ip', 'no disponible') if detalles else 'no disponible'
+            
+            data = {
+                'usuario_id': usuario_id,
+                'accion': accion,
+                'descripcion': str(detalles) if detalles else '',
+                'ip_address': ip,
+                'created_at': fecha_bolivia,
+            }
+            response = supabase.table('detalle_bitacora').insert(data).execute()
+            
+            if response.data:
+                logger.info(f"✅ Detalle bitácora: {usuario_email} - {accion}")
+                return True
+        
+        logger.error(f"❌ Error registrando: Respuesta vacía de Supabase")
+        return False
+            
+    except Exception as e:
+        logger.error(f"❌ Error registrando para {usuario_email}: {str(e)}")
+        return False       
     except Exception as e:
         # 5. Capturar cualquier excepción (error de conexión, timeout, etc.)
         #    NO relanzamos la excepción para que el flujo principal de la aplicación

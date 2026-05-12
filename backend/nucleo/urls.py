@@ -19,4 +19,5 @@ urlpatterns = [
 
     # API REST: Todas las rutas de la aplicación
     path('api/', include('usuarios.urls')),
+    path('api/', include('inventario.urls')),
 ]

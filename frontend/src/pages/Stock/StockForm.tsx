@@ -186,7 +186,7 @@ export default function StockForm() {
 
                 <Button
                     variant="ghost"
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate("/stock")}
                     className="mb-6 w-full sm:w-auto"
                 >
 

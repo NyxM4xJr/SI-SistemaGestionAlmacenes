@@ -34,7 +34,7 @@ export const menuConfig: MenuNode[] = [
   // PAQUETE 1: Administración de Usuarios
   {
     id: "pkg-usuarios",
-    label: "Administración de Usuarios",
+    label: "Autenticación y Seguridad",
     roles: ["administrador", "chef", "gerente", "usuario"],
     children: [
       {
