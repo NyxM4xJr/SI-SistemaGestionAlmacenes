@@ -84,34 +84,13 @@ const App = () => (
             <Route path="/insumos/ficha" element={<ProtectedRoute roles={["administrador", "chef", "gerente", "usuario"]}><FichaSearch /></ProtectedRoute>} />
 
             {/* PAQUETE 2: Gestión de Stock */}
-          {/* PAQUETE 2: Gestión de Stock */}
 
-<Route
-    path="/stock"
-    element={
-        <ProtectedRoute roles={["administrador", "chef"]}>
-            <StockList />
-        </ProtectedRoute>
-    }
-/>
+            <Route path="/stock"element={<ProtectedRoute roles={["administrador", "chef"]}><StockList /></ProtectedRoute>}/>
+            <Route path="/stock/nuevo"element={<ProtectedRoute roles={["administrador", "chef"]}><StockForm /></ProtectedRoute>}/>
+            <Route path="/stock/editar/:id"element={<ProtectedRoute roles={["administrador", "chef"]}><StockForm /></ProtectedRoute>}/>
+            <Route path="/stock/ajuste"element={<ProtectedRoute roles={["administrador", "chef"]}><StockForm /></ProtectedRoute>}/>
 
-<Route
-    path="/stock/nuevo"
-    element={
-        <ProtectedRoute roles={["administrador", "chef"]}>
-            <StockForm />
-        </ProtectedRoute>
-    }
-/>
 
-<Route
-    path="/stock/editar/:id"
-    element={
-        <ProtectedRoute roles={["administrador", "chef"]}>
-            <StockForm />
-        </ProtectedRoute>
-    }
-/>
             <Route path="/estacionalidad" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/historial-precios" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/stock/ajuste" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />

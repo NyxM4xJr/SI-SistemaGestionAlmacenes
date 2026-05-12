@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import { Input } from "@/components/ui/input";
 import { StockService, Stock } from "@/services/StockServices";
-import { Eye, Pencil, Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function StockList() {
@@ -32,12 +32,12 @@ export default function StockList() {
         <div className="min-h-screen bg-gradient-soft">
         <AppHeader />
 
-        <main className="container py-8 max-w-5xl">
+        <main className="container px-4 py-6 md:py-8 max-w-7xl">
 
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
             <div>
-                <h1 className="text-3xl font-bold">
+                <h1 className="text-2xl md:text-3xl font-bold">
                     Gestión de Stock
                 </h1>
 
@@ -46,11 +46,11 @@ export default function StockList() {
                 </p>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex w-full md:w-auto">
 
                 <button
                     onClick={() => navigate("/stock/nuevo")}
-                    className="bg-green-600 border border-black/100 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-green-700 transition shadow-sm"
+                    className="w-full md:w-auto bg-green-600 border border-black/100 text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition shadow-sm"
                 >
                     <Plus size={18} />
                     Nuevo Stock
@@ -67,9 +67,9 @@ export default function StockList() {
             className="mb-4"
             />
 
-            <div className="bg-card rounded-3xl shadow-card overflow-hidden">
+            <div className="bg-card rounded-3xl shadow-card overflow-x-auto">
 
-            <table className="w-full">
+            <table className="w-full min-w-[800px]">
 
                 <thead>
                 <tr className="border-b bg-secondary/50">
@@ -153,13 +153,7 @@ export default function StockList() {
                     <td className="p-4 w-[120px]">
 
                         <div className="flex items-center justify-start gap-3">
-
-                            <button
-                                onClick={() => alert(`Ver stock ${producto.id}`)}
-                                className="text-gray-600 hover:text-black transition"
-                            >
-                                <Eye size={18} />
-                            </button>
+                        
 
                             <button
                                 onClick={() => navigate(`/stock/editar/${producto.id}`)}

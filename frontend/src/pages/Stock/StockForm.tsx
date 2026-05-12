@@ -11,11 +11,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-
 import { ArrowLeft, PlusCircle } from "lucide-react";
-
 import { toast } from "sonner";
-
 import { StockService } from "@/services/StockServices";
 import { insumoService } from "@/services/insumoServices";
 
@@ -183,14 +180,14 @@ export default function StockForm() {
 
             <AppHeader />
 
-            <main className="container py-8 max-w-2xl">
+            <main className="container px-4 py-6 md:py-8 max-w-2xl">
 
                 {/* BOTÓN VOLVER */}
 
                 <Button
                     variant="ghost"
                     onClick={() => navigate(-1)}
-                    className="mb-6"
+                    className="mb-6 w-full sm:w-auto"
                 >
 
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -201,7 +198,7 @@ export default function StockForm() {
 
                 {/* HEADER */}
 
-                <div className="flex items-center gap-3 mb-8">
+                <div className="flex items-start md:items-center gap-3 mb-8">
 
                     <div className="h-12 w-12 rounded-2xl bg-primary/10 grid place-items-center">
 
@@ -211,7 +208,7 @@ export default function StockForm() {
 
                     <div>
 
-                        <h1 className="text-3xl font-bold">
+                        <h1 className="text-2xl md:text-3xl font-bold">
 
                             {isEditing
                                 ? "Editar Stock"
@@ -233,7 +230,7 @@ export default function StockForm() {
 
                 <form
                     onSubmit={handleSubmit}
-                    className="bg-card rounded-3xl shadow-card p-8 space-y-6"
+                    className="bg-card rounded-3xl shadow-card p-4 md:p-8 space-y-6"
                 >
 
                     <div className="space-y-4">
@@ -264,7 +261,8 @@ export default function StockForm() {
                                 }
                             >
 
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
+
 
                                     <SelectValue placeholder="Seleccionar insumo" />
 
@@ -318,7 +316,7 @@ export default function StockForm() {
 
                         {/* STOCK */}
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                             <div className="space-y-2">
 
@@ -379,7 +377,7 @@ export default function StockForm() {
                             loading ||
                             !form.insumo_id
                         }
-                        className="w-full text-lg font-semibold shadow-soft"
+                        className="w-full text-base md:text-lg font-semibold shadow-soft"
                     >
 
                         {loading
