@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+
 interface DetalleLote {
   id: number;
   insumo_id: number;
@@ -46,7 +48,7 @@ export default function Lotes() {
     setLoading(true);
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
-      const response = await fetch('http://127.0.0.1:8000/api/lotes/', {
+      const response = await fetch(`${API_URL}/lotes/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -142,7 +144,7 @@ export default function Lotes() {
     
     try {
     const token = (await supabase.auth.getSession()).data.session?.access_token;
-    const response = await fetch(`http://127.0.0.1:8000/api/lotes/${editingLote.id}/`, {
+    const response = await fetch(`${API_URL}/lotes/${editingLote.id}/`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
