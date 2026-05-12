@@ -38,7 +38,7 @@ export default function AppHeader() {
 
   return (
     <header className="bg-card border-b border-border shadow-card sticky top-0 z-40">
-      <div className="container flex items-center justify-between py-3">
+      <div className="container flex items-center justify-between py-3 px-0 sm:px-4">
         <div className="flex items-center gap-3">
           <Sidebar />
           <Link to="/perfil">
