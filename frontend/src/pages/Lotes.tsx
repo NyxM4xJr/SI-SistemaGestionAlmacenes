@@ -243,7 +243,7 @@ export default function Lotes() {
     
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
-      const response = await fetch('http://127.0.0.1:8000/api/lotes/', {
+      const response = await fetch(`${API_URL}/lotes/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -273,7 +273,7 @@ export default function Lotes() {
     
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
-      const response = await fetch(`http://127.0.0.1:8000/api/lotes/${id}/`, {
+      const response = await fetch(`${API_URL}/lotes/${id}/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
