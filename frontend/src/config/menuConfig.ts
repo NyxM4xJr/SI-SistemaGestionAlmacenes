@@ -166,19 +166,27 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu20",
         label: "Gestionar Platos",
-        path: "",
+        path: "/platos",
         roles: ["administrador", "chef"],
+        children: [
+          { id: "cu20-list", label: "Catálogo de Platos", path: "/platos", roles: ["administrador", "chef"] },
+          { id: "cu20-create", label: "Registrar Plato", path: "/platos/nuevo", roles: ["administrador", "chef"] },
+        ],
       },
       {
         id: "cu21",
         label: "Gestionar Recetas",
-        path: "",
+        path: "/recetas",
         roles: ["chef", "administrador"],
+        children: [
+          { id: "cu21-list", label: "Catálogo de Recetas", path: "/recetas", roles: ["chef", "administrador"] },
+          { id: "cu21-create", label: "Nueva Receta", path: "/recetas/nueva", roles: ["chef", "administrador"] },
+        ],
       },
       {
         id: "cu22",
-        label: "Configurar Merma Técnica",
-        path: "",
+        label: "Merma Técnica",
+        path: "/insumos",
         roles: ["administrador", "chef"],
       },
       {
