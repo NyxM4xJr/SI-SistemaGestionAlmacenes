@@ -13,26 +13,37 @@ class SupabaseAuthentication(authentication.BaseAuthentication):
     """
     
     def authenticate(self, request):
-        # 1. Obtener el token del header
-        auth_header = request.headers.get('Authorization')
-        
+        # 1. Obtener el token del header de forma robusta
+        auth_header = (
+            request.headers.get('Authorization')
+            or request.headers.get('authorization')
+            or request.META.get('HTTP_AUTHORIZATION')
+            or request.META.get('Authorization')
+        )
+
+        logger.debug(f"SupabaseAuthentication: Authorization header={auth_header}")
+
         if not auth_header:
+            logger.warning("SupabaseAuthentication: authorization header no encontrado")
             return None
-        
+
         # 2. Extraer el token (formato: "Bearer <token>")
         parts = auth_header.split()
         
         if len(parts) != 2 or parts[0].lower() != 'bearer':
+            logger.error(f"SupabaseAuthentication: formato de token invalido: {auth_header}")
             raise exceptions.AuthenticationFailed('Formato de token invalido')
         
-        token = parts[1]
+        token = parts[1].strip()
+        logger.debug(f"SupabaseAuthentication: token length={len(token) if token else '0'}")
         
         # 3. Validar el token contra Supabase
         try:
             supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
             user_response = supabase.auth.get_user(token)
             
-            if not user_response.user:
+            if not user_response or not getattr(user_response, 'user', None):
+                logger.error("SupabaseAuthentication: usuario no encontrado en respuesta de get_user")
                 raise exceptions.AuthenticationFailed('Token invalido o expirado')
             
             # 4. Obtener el rol desde la tabla usuario
