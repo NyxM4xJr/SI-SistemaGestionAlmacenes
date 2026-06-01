@@ -1,0 +1,19 @@
+*REPARTICION CICLO 3:*
+
+*MATEO:*
+	*CU14: Independiente
+	*CU13: Depende del CU14
+	
+*KAREN:*
+	*CU20: Independiente
+	*CU21: Depende del CU20
+	*CU22: Independiente
+
+*MARCOS:*
+	*CU17: Independiente
+	*CU10: Depende del CU10
+
+*ADALID:*
+	*CU09: Independiente
+	*CU18: Depende del CU17 (MARCOS)
+	*CU23: Depende del CU20 (KAREN)

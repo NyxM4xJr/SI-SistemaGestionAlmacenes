@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { supabase } from "../lib/supabase";
 
 // Roles del sistema (según documento del proyecto)
 export type Role = "chef" | "administrador" | "gerente" | "usuario";
@@ -9,6 +10,7 @@ export interface User {
   email: string;
   rol: Role;
   activo?: boolean;
+  tipo?: string;  //  NUEVO
 }
 
 interface AuthContextValue {
@@ -56,16 +58,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Restaurar sesión desde localStorage
+  // Restaurar sesión desde localStorage y sincronizar el cliente de Supabase
   useEffect(() => {
     const token = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
     const storedUser = localStorage.getItem("user");
-    
+
+    if (token && refreshToken) {
+      supabase.auth.setSession({
+        access_token: token,
+        refresh_token: refreshToken,
+      }).catch((error) => {
+        console.warn("No se pudo sincronizar sesión de Supabase en inicio:", error);
+      });
+    }
+
     if (token && storedUser) {
       try {
         setUser(JSON.parse(storedUser));
       } catch {
         localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
         localStorage.removeItem("user");
       }
     }
@@ -121,8 +134,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await response.json();
       
+      if (!data.access_token || !data.refresh_token) {
+        console.error("Login: token ausente en la respuesta:", data);
+        return { ok: false, error: "Error interno de autenticación" };
+      }
+
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("refresh_token", data.refresh_token);
+
+      try {
+        await supabase.auth.setSession({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+        });
+      } catch (sessionError) {
+        console.warn("No se pudo sincronizar sesión con Supabase client:", sessionError);
+      }
       
       // Obtener perfil completo
       const profileResponse = await fetch(`${API_URL}/auth/profile/`, {
@@ -190,6 +217,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error("Logout error:", error);
       }
+    }
+
+    try {
+      await supabase.auth.signOut();
+    } catch (signOutError) {
+      console.warn("No se pudo cerrar sesión en Supabase client:", signOutError);
     }
     
     localStorage.removeItem("access_token");

@@ -50,7 +50,10 @@ class RegisterSerializer(serializers.Serializer):
     choices=['chef', 'administrador', 'gerente', 'usuario'],
     default='usuario', # Rol por defecto
     required=False
-)
+    )
+
+    tipo = serializers.CharField(max_length=50, required=False, allow_blank=True)  # NUEVOOO
+
 
 
 class ResetPasswordSerializer(serializers.Serializer):

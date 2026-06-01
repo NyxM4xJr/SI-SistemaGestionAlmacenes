@@ -147,6 +147,8 @@ export default function Profile() {
                   <Mail className="h-5 w-5" /> {user.email}
                 </p>
 
+                <div><span className="font-bold">Tipo:</span> {user.tipo || 'No especificado'}</div>
+
                 <div className="grid sm:grid-cols-2 gap-3 max-w-xl">
                   <Button
                     size="lg"

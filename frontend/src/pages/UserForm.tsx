@@ -36,6 +36,8 @@ export default function UserForm() {
   const [password, setPassword] = useState("");
   const [rol, setRol] = useState<Role>("usuario");
   const [loading, setLoading] = useState(false);
+  const [tipo, setTipo] = useState("");
+
 
   useEffect(() => {
     if (isEditing && id) {
@@ -44,6 +46,7 @@ export default function UserForm() {
         setNombre(user.nombre);
         setEmail(user.email);
         setRol(user.rol);
+        setTipo(user.tipo || "");  // ← NUEVO
       }
     }
   }, [id, isEditing, users]);
@@ -96,7 +99,7 @@ export default function UserForm() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ nombre, email, password, rol }),
+          body: JSON.stringify({ nombre, email, password, rol, tipo }),  // ← NUEVO
         });
       }
 
@@ -161,6 +164,16 @@ export default function UserForm() {
                 <SelectItem value="usuario">Ayudante de Cocina</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tipo">Tipo (opcional)</Label>
+            <Input 
+              id="tipo" 
+              value={tipo} 
+              onChange={e => setTipo(e.target.value)} 
+              placeholder="Ej: Planta, Contrato, Temporal" 
+              disabled={loading} 
+            />
           </div>
           <Button type="submit" size="lg" className="w-full text-lg font-semibold shadow-soft" disabled={loading}>
             {loading ? "Guardando..." : isEditing ? "Guardar Cambios" : "Crear Usuario"}

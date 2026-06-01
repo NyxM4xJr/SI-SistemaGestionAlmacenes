@@ -2,15 +2,11 @@
  * ============================================================
  * ARCHIVO: frontend/src/services/insumoService.ts
  * CASO DE USO: CU07 - Gestionar Insumos
- * CICLO: 2
- * FECHA: 09/05/26
+ *              CU22 - Configurar Porcentaje de Merma Técnica
+ * CICLO: 2 / 3
+ * FECHA: 01/06/26
  * AUTOR: Karen Ortega Mancilla
- * DESCRIPCIÓN: Servicio de comunicación con la API de insumos.
- *   - getAll(): Lista todos los insumos
- *   - getById(id): Obtiene un insumo por ID
- *   - create(data): Crea un nuevo insumo
- *   - update(id, data): Actualiza un insumo existente
- *   - delete(id): Elimina un insumo
+ * CAMBIO CU22: Agrega porcentaje_merma a FichaTecnica e Insumo
  * ============================================================
  */
 
@@ -28,6 +24,7 @@ export interface Insumo {
   grasas: number;
   calcio: number;
   hierro: number;
+  porcentaje_merma?: number; // CU22 — se envía al PATCH, backend lo guarda en ficha_tecnica
 }
 
 const getToken = () => localStorage.getItem("access_token");
@@ -116,6 +113,7 @@ export interface FichaTecnica {
   caracteristicas: string;
   referencias: string;
   insumo_id: number;
+  porcentaje_merma?: number | null; // CU22 — puede ser null si no fue configurado
 }
 
 export interface InsumoConFicha {
@@ -124,11 +122,6 @@ export interface InsumoConFicha {
 }
 
 export const fichaTecnicaService = {
-  /**
-   * Obtiene un insumo junto con su ficha técnica asociada.
-   * @param insumoId - ID del insumo a consultar
-   * @returns Objeto con { insumo, ficha_tecnica }
-   */
   getById: async (insumoId: number): Promise<InsumoConFicha> => {
     const res = await fetch(`${API_URL}/insumos/${insumoId}/ficha-tecnica/`, {
       headers: headers(),

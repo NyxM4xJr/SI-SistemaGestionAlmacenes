@@ -1,3 +1,5 @@
+from urllib3 import request
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -364,6 +366,7 @@ class UserProfileView(APIView):
                     'nombre': user_data['nombre'],
                     'rol': user_data['rol'],
                     'telefono': user_data.get('telefono'),
+                    'tipo': user_data.get('tipo'),  # ← NUEVO
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
@@ -388,6 +391,8 @@ class UserProfileView(APIView):
                 update_data['nombre'] = request.data['nombre']
             if 'email' in request.data:
                 update_data['email'] = request.data['email']
+            if 'tipo' in request.data:  # ← NUEVO
+                update_data['tipo'] = request.data['tipo']
             
             if not update_data:
                 return Response(
@@ -630,6 +635,8 @@ class AdminCreateUserView(APIView):
         password = request.data.get('password')
         nombre = request.data.get('nombre')
         rol = request.data.get('rol', 'usuario')
+        tipo = request.data.get('tipo', '')  # ← NUEVO
+
         
         if not all([email, password, nombre]):
             return Response(
@@ -659,7 +666,8 @@ class AdminCreateUserView(APIView):
             supabase.table('usuario').update({
                 'nombre': nombre,
                 'rol': rol,
-                'activo': True
+                'activo': True,
+                'tipo': tipo,  # ← NUEVO
             }).eq('id', auth_response.user.id).execute()
             
             return Response({
@@ -696,6 +704,7 @@ class AdminUpdateUserView(APIView):
         
         nombre = request.data.get('nombre')
         email = request.data.get('email')
+        tipo = request.data.get('tipo')  # ← NUEVO
         
         if not nombre and not email:
             return Response(
@@ -711,6 +720,8 @@ class AdminUpdateUserView(APIView):
                 update_data['nombre'] = nombre
             if email:
                 update_data['email'] = email
+            if tipo is not None:  # ← NUEVO
+                update_data['tipo'] = tipo
             
             response = supabase.table('usuario').update(update_data).eq('id', str(user_id)).execute()
             

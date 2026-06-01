@@ -2,14 +2,12 @@
  * ============================================================
  * ARCHIVO: frontend/src/pages/Insumos/FichaSearch.tsx
  * CASO DE USO: CU08 - Consultar Ficha Técnica Digital
- * CICLO: 2
- * FECHA: 10/05/26
- * AUTOR:....
- * 
- * DESCRIPCIÓN: Buscador de insumos para visualizar su ficha
- * técnica. Muestra una lista ultra simplificada con solo nombre
- * y categoría. Al seleccionar uno, muestra su detalle completo.
- * 
+ *              CU22 - Configurar Porcentaje de Merma Técnica
+ * CICLO: 2 / 3
+ * FECHA: 01/06/26
+ * AUTOR: Karen Ortega Mancilla
+ * CAMBIO CU22: Muestra el campo porcentaje_merma en la sección
+ *   de Ficha Técnica cuando está disponible.
  * ============================================================
  */
 
@@ -40,24 +38,30 @@ export default function FichaSearch() {
   const filtered = insumos.filter(i =>
     i.nombre.toLowerCase().includes(search.toLowerCase())
   );
- 
-   const handleSelectInsumo = async (insumo: Insumo) => {
+
+  const handleSelectInsumo = async (insumo: Insumo) => {
     setSelected(insumo);
     setLoadingFicha(true);
     setFichaData(null);
-    
+
     try {
       if (!insumo.id) throw new Error("ID no disponible");
       const data = await fichaTecnicaService.getById(insumo.id);
       setFichaData(data);
-    } catch (error) {
+    } catch {
       toast.error("No se pudo cargar la ficha técnica completa");
-      // Mostramos al menos lo básico del insumo
       setFichaData({ insumo: insumo, ficha_tecnica: null });
     } finally {
       setLoadingFicha(false);
     }
   };
+
+  // ── Helper para badge de merma ────────────────────────────
+  function getMermaBadge(porcentaje: number) {
+    if (porcentaje <= 10) return { label: "Merma baja", color: "bg-green-50 text-green-700 border-green-200" };
+    if (porcentaje <= 30) return { label: "Merma moderada", color: "bg-yellow-50 text-yellow-700 border-yellow-200" };
+    return { label: "Merma alta", color: "bg-red-50 text-red-700 border-red-200" };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-soft">
@@ -106,7 +110,7 @@ export default function FichaSearch() {
               </div>
             )}
           </>
-                ) : (
+        ) : (
           <div className="bg-card rounded-3xl shadow-card p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">{selected.nombre}</h2>
@@ -132,9 +136,7 @@ export default function FichaSearch() {
                 </div>
 
                 {/* FICHA TÉCNICA */}
-                <h3 className="font-bold text-lg border-b pb-2 mb-4">
-                  Ficha Técnica
-                </h3>
+                <h3 className="font-bold text-lg border-b pb-2 mb-4">Ficha Técnica</h3>
                 {fichaData?.ficha_tecnica ? (
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="col-span-2 bg-primary/5 p-4 rounded-xl">
@@ -153,6 +155,27 @@ export default function FichaSearch() {
                       <span className="font-bold">Referencias:</span>{" "}
                       {fichaData.ficha_tecnica.referencias}
                     </div>
+
+                    {/* ── CU22: Porcentaje de Merma Técnica ── */}
+                    {fichaData.ficha_tecnica.porcentaje_merma != null && (
+                      <div className="col-span-2 mt-2">
+                        <span className="font-bold">📉 Merma Técnica Esperada:</span>{" "}
+                        <span className="text-lg font-semibold">
+                          {fichaData.ficha_tecnica.porcentaje_merma}%
+                        </span>
+                        {(() => {
+                          const badge = getMermaBadge(Number(fichaData.ficha_tecnica.porcentaje_merma));
+                          return (
+                            <span className={`ml-2 text-xs font-medium px-2.5 py-0.5 rounded-full border ${badge.color}`}>
+                              {badge.label}
+                            </span>
+                          );
+                        })()}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Pérdida esperada durante preparación o conservación del insumo.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <p className="text-amber-600 bg-amber-50 p-4 rounded-xl mb-6">
@@ -161,9 +184,7 @@ export default function FichaSearch() {
                 )}
 
                 {/* VALORES NUTRICIONALES */}
-                <h3 className="font-bold text-lg border-b pb-2 mb-4">
-                  Valores Nutricionales (por 100g)
-                </h3>
+                <h3 className="font-bold text-lg border-b pb-2 mb-4">Valores Nutricionales (por 100g)</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div><span className="font-bold">Proteínas:</span> {fichaData?.insumo.proteinas ?? selected.proteinas}g</div>
                   <div><span className="font-bold">Calorías:</span> {fichaData?.insumo.calorias ?? selected.calorias}kcal</div>

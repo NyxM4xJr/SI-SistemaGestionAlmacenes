@@ -10,12 +10,21 @@ from .views import (
     ToggleUserActiveView,    
     AdminCreateUserView,  
     AdminUpdateUserView,   
-    LogPasswordResetView, # NUEVO
+    LogPasswordResetView,
 )
 from .insumo_views import InsumoListView, InsumoDetailView, InsumoHistorialPreciosView
 from .stock_views import StockListView, StockDetailView
 from .ficha_views import FichaTecnicaView
 from .bitacora_views import DetalleBitacoraListView
+from .plato_views import PlatoListView, PlatoDetailView  # CU20
+from .receta_views import (                                       # CU21
+    RecetaListView,
+    RecetaDetailView,
+    RecetaCatalogosView,
+)
+
+from .movimiento_views import MovimientoListView, MovimientoDetailView #CU14
+from .alerta_views import AlertaListView, AlertaConteoView, AlertaDetailView # CU13
 
 
 """
@@ -80,5 +89,28 @@ urlpatterns = [
 
     # ----- CU30 BITACORA DET. -------
     path('bitacora/completa/', DetalleBitacoraListView.as_view(), name='bitacora-completa'),
+
+
+    # ============================================
+    #             ---- CICLO #3 ----
+    # ============================================
+    # ---- CU20 GESTIONAR PLATOS DEL MENÚ ----
+    path('platos/', PlatoListView.as_view(), name='plato-list'),           # GET: listar | POST: crear
+    path('platos/<int:plato_id>/', PlatoDetailView.as_view(), name='plato-detail'),  # GET / PATCH / DELETE
+
+    # ---- CU21 GESTIONAR RECETAS ----
+    # IMPORTANTE: catalogos/ va ANTES de <int:receta_id>/ para evitar conflicto de rutas
+    path('recetas/catalogos/', RecetaCatalogosView.as_view(), name='receta-catalogos'),
+    path('recetas/', RecetaListView.as_view(), name='receta-list'),
+    path('recetas/<int:receta_id>/', RecetaDetailView.as_view(), name='receta-detail'),
+
+    # ---- CU14 MOVIMIENTOS DE INVENTARIO ----
+    path('movimientos/', MovimientoListView.as_view(), name='movimiento-list'),
+    path('movimientos/<int:movimiento_id>/', MovimientoDetailView.as_view(), name='movimiento-detail'),
+
+    # ---- CU13 GESTIONAR ALERTAS ----
+    path('alertas/', AlertaListView.as_view(), name='alerta-list'),
+    path('alertas/conteo/', AlertaConteoView.as_view(), name='alerta-conteo'),
+    path('alertas/<int:alerta_id>/', AlertaDetailView.as_view(), name='alerta-detail'),
 
 ]

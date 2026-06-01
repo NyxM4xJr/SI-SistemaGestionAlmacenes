@@ -41,6 +41,22 @@ import ProveedorList from "./pages/Proveedores/ProveedorList";
 
 import HistorialPrecios from "./pages/HistorialPrecios/HistorialPrecios";
 
+// ── Ciclo 3 ──────────────────────────────────────────────────
+// CU20 - Platos del Menú
+import PlatoList from "./pages/Platos/PlatoList";
+import PlatoForm from "./pages/Platos/PlatoForm";
+
+// CU21 - Recetas
+import RecetaList from "./pages/Recetas/RecetaList";
+import RecetaForm from "./pages/Recetas/RecetaForm";
+
+// CU14 - Movimientos de Inventario
+import MovimientoList from "./pages/Movimientos/MovimientoList";
+import MovimientoForm from "./pages/Movimientos/MovimientoForm";
+
+// CU13 - Alertas de Stock
+import AlertaList from "./pages/Alertas/AlertaList";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -83,15 +99,35 @@ const App = () => (
             {/* CU12 - Gestión de Lotes */}
             <Route path="/lotes" element={<ProtectedRoute roles={["administrador"]}><Lotes /></ProtectedRoute>} />
 
-            {/* Placeholders para otros módulos */}
+            {/* ══════════════════════════════════════════════
+                            CICLO #3
+                ══════════════════════════════════════════════ */}
+
+            {/* PAQUETE 4: Menús y Recetas */}
+
+            {/* CU20 - Gestionar Platos del Menú */}
+            <Route path="/platos" element={<ProtectedRoute roles={["administrador", "chef"]}><PlatoList /></ProtectedRoute>} />
+            <Route path="/platos/nuevo" element={<ProtectedRoute roles={["administrador", "chef"]}><PlatoForm /></ProtectedRoute>} />
+            <Route path="/platos/:id/editar" element={<ProtectedRoute roles={["administrador", "chef"]}><PlatoForm /></ProtectedRoute>} />
+
+            {/* CU21 - Gestionar Recetas */}
+            <Route path="/recetas" element={<ProtectedRoute roles={["administrador", "chef"]}><RecetaList /></ProtectedRoute>} />
+            <Route path="/recetas/nueva" element={<ProtectedRoute roles={["administrador", "chef"]}><RecetaForm /></ProtectedRoute>} />
+            <Route path="/recetas/:id/editar" element={<ProtectedRoute roles={["administrador", "chef"]}><RecetaForm /></ProtectedRoute>} />
+
+            {/* CU14 - Registrar Movimiento de Inventario */}
+            <Route path="/movimientos" element={<ProtectedRoute roles={["administrador", "chef"]}><MovimientoList /></ProtectedRoute>} />
+            <Route path="/movimientos/nuevo" element={<ProtectedRoute roles={["administrador", "chef"]}><MovimientoForm /></ProtectedRoute>} />
+            
+            {/* CU13 - Alertas de Stock */}
+            <Route path="/alertas" element={<ProtectedRoute roles={["administrador", "chef"]}><AlertaList /></ProtectedRoute>} />
+
+
+            {/* Placeholders — módulos pendientes de implementación */}
             <Route path="/estacionalidad" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/historial-precios" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><HistorialPrecios /></ProtectedRoute>} />
-            <Route path="/movimientos" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/alertas" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/cierre-turno" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/descargo" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/platos" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/recetas" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/merma-tecnica" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/menus" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/sugerir-menu" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
