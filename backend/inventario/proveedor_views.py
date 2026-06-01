@@ -208,3 +208,92 @@ class ProveedorDetailView(APIView):
                 {'error': 'Error al eliminar el proveedor (puede estar en uso)'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+class ProveedorInsumoView(APIView):
+    """
+    POST: Asociar un insumo a un proveedor.
+    DELETE: Eliminar la asociación.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, proveedor_id):
+        data = request.data
+        insumo_id = data.get("insumo_id")
+        
+        if not insumo_id:
+            return Response({'error': 'El insumo_id es obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Conexión con Supabase
+            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+            
+            # Regla de Negocio: Evitar duplicidad de asociaciones.
+            # Verificamos si este insumo ya fue vinculado a este proveedor.
+            check_exist = supabase.table('proveedor_insumo').select('id').eq('proveedor_id', proveedor_id).eq('insumo_id', insumo_id).execute()
+            if check_exist.data:
+                return Response({'error': 'Este insumo ya está asociado a este proveedor'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Construimos el payload con los datos de asociación y valores por defecto
+            payload = {
+                "proveedor_id": proveedor_id,
+                "insumo_id": insumo_id,
+                "precio": float(data.get("precio", 0)),
+                "calificacion": data.get("calificacion", "Sin Calificar"),
+                "nota": data.get("nota", "")
+            }
+            
+            # Insertar el nuevo registro en la tabla pivote
+            response = supabase.table('proveedor_insumo').insert(payload).execute()
+            nueva_asociacion = response.data[0]
+            
+            # Para que el Frontend pueda pintar la tabla inmediatamente sin recargar,
+            # obtenemos el nombre del insumo y se lo anexamos al objeto retornado.
+            insumo_resp = supabase.table('insumo').select('nombre').eq('id', insumo_id).execute()
+            if insumo_resp.data:
+                nueva_asociacion['insumo'] = insumo_resp.data[0]
+            
+            # Registro de Auditoría en la Bitácora
+            ip_cliente = obtener_ip_cliente(request)
+            registrar_accion(
+                usuario_id=str(request.user.id),
+                usuario_email=request.user.email,
+                accion="ASOCIAR_INSUMO_PROVEEDOR",
+                detalles={
+                    "ip": ip_cliente,
+                    "proveedor_id": proveedor_id,
+                    "insumo_id": insumo_id
+                }
+            )
+            
+            return Response(nueva_asociacion, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            logger.error(f"Error asociando insumo: {str(e)}")
+            return Response({'error': 'Error al asociar el insumo'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, proveedor_id, insumo_id):
+        try:
+            # Cliente Supabase
+            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+            
+            # Ejecutamos un hard-delete en la tabla pivote para romper el vínculo
+            response = supabase.table('proveedor_insumo').delete().eq('proveedor_id', proveedor_id).eq('insumo_id', insumo_id).execute()
+            
+            # Guardamos el rastro en la bitácora por seguridad
+            ip_cliente = obtener_ip_cliente(request)
+            registrar_accion(
+                usuario_id=str(request.user.id),
+                usuario_email=request.user.email,
+                accion="DESASOCIAR_INSUMO_PROVEEDOR",
+                detalles={
+                    "ip": ip_cliente,
+                    "proveedor_id": proveedor_id,
+                    "insumo_id": insumo_id
+                }
+            )
+            
+            return Response({'message': 'Asociación eliminada exitosamente'}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error eliminando asociación de insumo: {str(e)}")
+            return Response({'error': 'Error al eliminar la asociación'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -95,4 +95,26 @@ export const ProveedorService = {
       throw new Error("Error al eliminar proveedor");
     }
   },
+
+  asociarInsumo: async (proveedorId: number, data: Partial<ProveedorInsumo>): Promise<ProveedorInsumo> => {
+    const res = await fetch(`${API_URL}/proveedores/${proveedorId}/insumos/`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      throw new Error("Error al asociar el insumo al proveedor");
+    }
+    return res.json();
+  },
+
+  desasociarInsumo: async (proveedorId: number, insumoId: number): Promise<void> => {
+    const res = await fetch(`${API_URL}/proveedores/${proveedorId}/insumos/${insumoId}/`, {
+      method: "DELETE",
+      headers: headers(),
+    });
+    if (!res.ok) {
+      throw new Error("Error al eliminar la asociación");
+    }
+  },
 };

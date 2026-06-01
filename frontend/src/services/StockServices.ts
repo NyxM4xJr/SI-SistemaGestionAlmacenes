@@ -17,6 +17,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
     stock_max: number;
 
     insumo_id: number;
+    inventario_id: number;
 
     insumo?: {
         nombre: string;

@@ -153,19 +153,20 @@ class LoteViewSet(viewsets.ViewSet):
                 print(f"SQL: {sql}")
                 self.supabase.rpc('exec_sql', {'query': sql}).execute()
             
-            # 2. Actualizar detalles
+            # 2. Actualizar detalles del Lote
             if 'detalles' in data and data['detalles']:
-                # Obtener detalles antiguos para restaurar stock
+                # Regla de Negocio Crítica: Para actualizar un lote, primero revertimos 
+                # las cantidades de stock que habían ingresado con los detalles antiguos.
                 antiguos = self.supabase.table('detalle_lote').select('stock_id, cantidad').eq('lote_id', pk).execute()
                 for a in antiguos.data:
                     sql_stock = f"UPDATE stock SET cantidad = cantidad - {a['cantidad']} WHERE id = {a['stock_id']}"
                     self.supabase.rpc('exec_sql', {'query': sql_stock}).execute()
                 
-                # Eliminar detalles antiguos
+                # Una vez revertido el stock, eliminamos los detalles antiguos de la base de datos
                 sql_del = f"DELETE FROM detalle_lote WHERE lote_id = {pk}"
                 self.supabase.rpc('exec_sql', {'query': sql_del}).execute()
                 
-                # Insertar nuevos detalles
+                # Finalmente, procedemos a insertar los NUEVOS detalles enviados desde el frontend
                 fecha_ing = data.get('fecha_ing', date.today().isoformat())
                 total_lote = 0
                 
@@ -175,10 +176,12 @@ class LoteViewSet(viewsets.ViewSet):
                     cantidad = detalle['cantidad']
                     costo = detalle['costo_unitario']
                     
+                    # Cálculo Automático de Vencimiento: Buscamos cuántos días de vida útil tiene el insumo
                     insumo = self.supabase.table('insumo').select('vencimiento_dias').eq('id', insumo_id).execute()
                     venc = insumo.data[0]['vencimiento_dias']
                     fecha_venc = date.fromisoformat(fecha_ing) + timedelta(days=venc)
                     
+                    # Insertamos el detalle calculando su fecha de vencimiento exacta
                     sql = f"""
                         INSERT INTO detalle_lote (lote_id, insumo_id, stock_id, cantidad, costo_unitario, fecha_vencimiento)
                         VALUES ({pk}, {insumo_id}, {stock_id}, {cantidad}, {costo}, '{fecha_venc.isoformat()}')
@@ -186,7 +189,7 @@ class LoteViewSet(viewsets.ViewSet):
                     print(f"SQL: {sql}")
                     self.supabase.rpc('exec_sql', {'query': sql}).execute()
                     
-                    # Actualizar stock
+                    # Ingresamos la nueva cantidad de los detalles actuales al Stock físico
                     sql_stock = f"UPDATE stock SET cantidad = cantidad + {cantidad} WHERE id = {stock_id}"
                     self.supabase.rpc('exec_sql', {'query': sql_stock}).execute()
                     
@@ -203,17 +206,19 @@ class LoteViewSet(viewsets.ViewSet):
     
     def destroy(self, request, pk=None):
         try:
+            # Primero verificamos si el lote existe
             existe = self.supabase.table('lote').select('id').eq('id', pk).execute()
             if not existe.data:
                 return Response({'error': 'Lote no encontrado'}, status=404)
             
-            # Obtener detalles para restaurar stock
+            # Operación Crítica: Revertir Stock al eliminar un lote.
+            # Buscamos todos los detalles de este lote y restamos su cantidad del stock físico.
             detalles = self.supabase.table('detalle_lote').select('stock_id, cantidad').eq('lote_id', pk).execute()
             for d in detalles.data:
                 sql_stock = f"UPDATE stock SET cantidad = cantidad - {d['cantidad']} WHERE id = {d['stock_id']}"
                 self.supabase.rpc('exec_sql', {'query': sql_stock}).execute()
             
-            # Eliminar lote (detalles se eliminan por CASCADE)
+            # Una vez revertido el inventario, eliminamos el lote (Sus detalles se eliminan por regla CASCADE en DB)
             sql_del = f"DELETE FROM lote WHERE id = {pk}"
             self.supabase.rpc('exec_sql', {'query': sql_del}).execute()
             

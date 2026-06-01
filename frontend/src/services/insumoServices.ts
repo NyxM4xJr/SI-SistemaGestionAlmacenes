@@ -97,6 +97,15 @@ export const insumoService = {
     if (!res.ok) throw new Error("Error al cargar el historial de precios");
     return res.json();
   },
+
+  updateEstacionalidad: async (id: number, meses: Partial<HistorialPrecio>[]): Promise<void> => {
+    const res = await fetch(`${API_URL}/insumos/${id}/estacionalidad/`, {
+      method: "PUT",
+      headers: headers(),
+      body: JSON.stringify({ meses }),
+    });
+    if (!res.ok) throw new Error("Error al actualizar la estacionalidad");
+  },
 };
 
 /**
