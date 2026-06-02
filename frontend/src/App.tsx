@@ -36,6 +36,17 @@ import StockForm from "@/pages/Stock/StockForm";
 // CU12 - Lotes
 import Lotes from "./pages/Lotes";
 
+// Proveedores
+import ProveedorList from "./pages/Proveedores/ProveedorList";
+import AsociarInsumos from "./pages/Proveedores/AsociarInsumos";
+
+// Menus
+import MenuList from "./pages/Menus/MenuList";
+import MenuDetalle from "./pages/Menus/MenuDetalle";
+
+import HistorialPrecios from "./pages/HistorialPrecios/HistorialPrecios";
+import Estacionalidad from "./pages/Estacionalidad/Estacionalidad";
+
 // ── Ciclo 3 ──────────────────────────────────────────────────
 // CU20 - Platos del Menú
 import PlatoList from "./pages/Platos/PlatoList";
@@ -119,15 +130,16 @@ const App = () => (
 
 
             {/* Placeholders — módulos pendientes de implementación */}
-            <Route path="/estacionalidad" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/historial-precios" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
+            <Route path="/estacionalidad" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><Estacionalidad /></ProtectedRoute>} />
+            <Route path="/historial-precios" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><HistorialPrecios /></ProtectedRoute>} />
             <Route path="/cierre-turno" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/descargo" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/merma-tecnica" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/menus" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
+            <Route path="/menus" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><MenuList /></ProtectedRoute>} />
+            <Route path="/menus/:id" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><MenuDetalle /></ProtectedRoute>} />
             <Route path="/sugerir-menu" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/proveedores" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/proveedores/asociar" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
+            <Route path="/proveedores" element={<ProtectedRoute roles={["administrador", "gerente"]}><ProveedorList /></ProtectedRoute>} />
+            <Route path="/proveedores/asociar" element={<ProtectedRoute roles={["administrador"]}><AsociarInsumos /></ProtectedRoute>} />
             <Route path="/proveedores/mapa" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/valor-perdido" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/rotacion" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />

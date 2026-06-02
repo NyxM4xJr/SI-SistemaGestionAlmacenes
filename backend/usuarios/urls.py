@@ -12,7 +12,8 @@ from .views import (
     AdminUpdateUserView,   
     LogPasswordResetView,
 )
-from .insumo_views import InsumoListView, InsumoDetailView
+from .insumo_views import InsumoListView, InsumoDetailView, InsumoHistorialPreciosView
+from .estacionalidad_views import EstacionalidadView
 from .stock_views import StockListView, StockDetailView
 from .ficha_views import FichaTecnicaView
 from .bitacora_views import DetalleBitacoraListView
@@ -22,6 +23,7 @@ from .receta_views import (                                       # CU21
     RecetaDetailView,
     RecetaCatalogosView,
 )
+from .menu_views import MenuListView, MenuDetailView, DetalleMenuView # CU23
 
 from .movimiento_views import MovimientoListView, MovimientoDetailView #CU14
 from .alerta_views import AlertaListView, AlertaConteoView, AlertaDetailView # CU13
@@ -78,6 +80,8 @@ urlpatterns = [
     # ---- CU7 GESTION DE INSUMOS ----
     path('insumos/', InsumoListView.as_view(), name='insumo-list'),
     path('insumos/<int:insumo_id>/', InsumoDetailView.as_view(), name='insumo-detail'),
+    path('insumos/<int:insumo_id>/historial-precios/', InsumoHistorialPreciosView.as_view(), name='insumo-historial-precios'),
+    path('insumos/<int:insumo_id>/estacionalidad/', EstacionalidadView.as_view(), name='insumo-estacionalidad'),
 
     # ---- CU8 CONSULTAR FICHA TECNICA----
     path('insumos/<int:insumo_id>/ficha-tecnica/', FichaTecnicaView.as_view(), name='ficha-tecnica'),
@@ -102,6 +106,12 @@ urlpatterns = [
     path('recetas/catalogos/', RecetaCatalogosView.as_view(), name='receta-catalogos'),
     path('recetas/', RecetaListView.as_view(), name='receta-list'),
     path('recetas/<int:receta_id>/', RecetaDetailView.as_view(), name='receta-detail'),
+
+    # ---- CU23 GESTIONAR MENUS ----
+    path('menus/', MenuListView.as_view(), name='menu-list'),
+    path('menus/<int:menu_id>/', MenuDetailView.as_view(), name='menu-detail'),
+    path('menus/<int:menu_id>/platos/', DetalleMenuView.as_view(), name='menu-plato-add'),
+    path('menus/<int:menu_id>/platos/<int:detalle_id>/', DetalleMenuView.as_view(), name='menu-plato-delete'),
 
     # ---- CU14 MOVIMIENTOS DE INVENTARIO ----
     path('movimientos/', MovimientoListView.as_view(), name='movimiento-list'),

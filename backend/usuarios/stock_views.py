@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from supabase import create_client
 from django.conf import settings
+from bitacora.utils import registrar_accion, obtener_ip_cliente
 
 
 # =========================================================
@@ -106,6 +107,20 @@ class StockListView(APIView):
                 .execute()
             )
 
+            # Registrar en bitácora
+            ip_cliente = obtener_ip_cliente(request)
+            registrar_accion(
+                usuario_id=str(request.user.id),
+                usuario_email=request.user.email,
+                accion="CREAR_STOCK",
+                detalles={
+                    "ip": ip_cliente,
+                    "stock_id": response.data[0]['id'],
+                    "insumo_id": payload["insumo_id"],
+                    "cantidad": payload["cantidad"]
+                }
+            )
+
             return Response(
                 response.data[0],
                 status=status.HTTP_201_CREATED
@@ -176,6 +191,19 @@ class StockDetailView(APIView):
                 .execute()
             )
 
+            # Registrar en bitácora
+            ip_cliente = obtener_ip_cliente(request)
+            registrar_accion(
+                usuario_id=str(request.user.id),
+                usuario_email=request.user.email,
+                accion="EDITAR_STOCK",
+                detalles={
+                    "ip": ip_cliente,
+                    "stock_id": stock_id,
+                    "campos_actualizados": list(request.data.keys())
+                }
+            )
+
             return Response(
                 response.data,
                 status=status.HTTP_200_OK
@@ -203,6 +231,18 @@ class StockDetailView(APIView):
                 .delete()
                 .eq("id", stock_id)
                 .execute()
+            )
+
+            # Registrar en bitácora
+            ip_cliente = obtener_ip_cliente(request)
+            registrar_accion(
+                usuario_id=str(request.user.id),
+                usuario_email=request.user.email,
+                accion="ELIMINAR_STOCK",
+                detalles={
+                    "ip": ip_cliente,
+                    "stock_id": stock_id
+                }
             )
 
             return Response(

@@ -263,3 +263,30 @@ class InsumoDetailView(APIView):
                 {'error': 'Error al eliminar el insumo.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+# ============================================================
+# INSUMO HISTORIAL PRECIOS VIEW - Maneja GET de precios por estaciòn
+# ============================================================
+
+class InsumoHistorialPreciosView(APIView):
+    """
+    GET /api/insumos/{id}/historial-precios/
+    Obtiene el historial de precios de un insumo desde la tabla 'por_estaciones'.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, insumo_id):
+        try:
+            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+            # Fetch por_estaciones where insumo_id matches, ordered by mes
+            response = supabase.table('por_estaciones').select('*').eq('insumo_id', insumo_id).order('mes').execute()
+            
+            return Response(response.data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo historial de precios para insumo {insumo_id}: {str(e)}")
+            return Response(
+                {'error': 'Error al obtener el historial de precios'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

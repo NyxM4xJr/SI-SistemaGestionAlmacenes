@@ -97,13 +97,13 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu09",
         label: "Calendario de Estacionalidad",
-        path: "",
-        roles: ["administrador", "gerente"],
+        path: "/estacionalidad",
+        roles: ["administrador"],
       },
       {
         id: "cu10",
         label: "Historial de Precios",
-        path: "",
+        path: "/historial-precios",
         roles: ["administrador", "gerente"],
       },
     ],
@@ -192,7 +192,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu23",
         label: "Gestionar Menús",
-        path: "",
+        path: "/menus",
         roles: ["chef", "gerente", "administrador"],
       },
       {
@@ -213,13 +213,13 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu17",
         label: "Gestionar Proveedores",
-        path: "",
-        roles: ["administrador"],
+        path: "/proveedores",
+        roles: ["administrador", "gerente"],
       },
       {
         id: "cu18",
         label: "Asociar Insumos a Proveedores",
-        path: "",
+        path: "/proveedores/asociar",
         roles: ["administrador"],
       },
       {
