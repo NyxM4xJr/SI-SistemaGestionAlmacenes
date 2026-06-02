@@ -1,0 +1,44 @@
+backend/bitacora/utils.py
+backend/nucleo/usuarios/authentication.py
+backend/usuarios/alerta_views.py
+backend/usuarios/authentication.py
+backend/usuarios/bitacora_views.py
+backend/usuarios/ficha_views.py
+backend/usuarios/insumo_views.py
+backend/usuarios/movimiento_views.py
+backend/usuarios/plato_views.py
+backend/usuarios/receta_views.py
+backend/usuarios/serializers.py
+backend/usuarios/stock_views.py
+backend/usuarios/urls.py
+backend/usuarios/views.py
+docs/Seguimiento/Reparticion de  los cu Ciclo2.txt
+docs/Seguimiento/Reparticion de  los cu Ciclo2.txt.bak
+docs/Seguimiento/Reparticiones de los cu Ciclo3.txt
+docs/diagramas/Mateo/MODELO DE NEGOCIO.qea
+docs/informes/Proyecto SI1 Grupo2 (copia para que todos la tengan).docx
+frontend/src/App.tsx
+frontend/src/components/AppHeader.tsx
+frontend/src/config/menuConfig.ts
+frontend/src/context/AuthContext.tsx
+frontend/src/pages/Alertas/AlertaList.tsx
+frontend/src/pages/BitacoraList.tsx
+frontend/src/pages/Insumos/FichaSearch.tsx
+frontend/src/pages/Insumos/InsumoForm.tsx
+frontend/src/pages/Insumos/InsumoList.tsx
+frontend/src/pages/Lotes.tsx
+frontend/src/pages/Movimientos/MovimientoForm.tsx
+frontend/src/pages/Movimientos/MovimientoList.tsx
+frontend/src/pages/Platos/PlatoForm.tsx
+frontend/src/pages/Platos/PlatoList.tsx
+frontend/src/pages/Profile.tsx
+frontend/src/pages/Recetas/RecetaForm.tsx
+frontend/src/pages/Recetas/RecetaList.tsx
+frontend/src/pages/Stock/StockForm.tsx
+frontend/src/pages/Stock/StockList.tsx
+frontend/src/pages/UserForm.tsx
+frontend/src/services/alertaService.ts
+frontend/src/services/insumoServices.ts
+frontend/src/services/movimientoService.ts
+frontend/src/services/platoService.ts
+frontend/src/services/recetaService.ts
