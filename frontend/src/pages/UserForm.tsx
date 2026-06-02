@@ -4,10 +4,10 @@
  * CASO DE USO: CU05 - Gestionar Usuario
  * CICLO: 2
  * FECHA: 10/05/26
- * 
+ *
  * DESCRIPCIÓN: Formulario reutilizable para crear y editar
  * usuarios. Cambia entre modo "crear" y "editar" según la ruta.
- * 
+ *
  * Modos:
  * - /admin/usuarios/crear → Formulario vacío, crea nuevo usuario
  * - /admin/usuarios/:id/editar → Precarga datos, actualiza usuario
@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth, Role } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { ArrowLeft, Save, UserPlus } from "lucide-react";
+import { ArrowLeft, Save, UserPlus, Eye, EyeOff } from "lucide-react";
 
 export default function UserForm() {
   const { id } = useParams();
@@ -38,21 +38,24 @@ export default function UserForm() {
   const [loading, setLoading] = useState(false);
   const [tipo, setTipo] = useState("");
 
+  // Toggle de visibilidad de contraseña
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isEditing && id) {
-      const user = users.find(u => u.id === id);
+      const user = users.find((u) => u.id === id);
       if (user) {
         setNombre(user.nombre);
         setEmail(user.email);
         setRol(user.rol);
-        setTipo(user.tipo || "");  // ← NUEVO
+        setTipo(user.tipo || "");
       }
     }
   }, [id, isEditing, users]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     // Validar contraseña si es creación
     if (!isEditing) {
       if (password.length < 8) {
@@ -79,10 +82,10 @@ export default function UserForm() {
     }
 
     const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
-    
+
     try {
       let response: Response;
-      
+
       if (isEditing && id) {
         response = await fetch(`${API_URL}/auth/users/${id}/`, {
           method: "PATCH",
@@ -99,7 +102,7 @@ export default function UserForm() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ nombre, email, password, rol, tipo }),  // ← NUEVO
+          body: JSON.stringify({ nombre, email, password, rol, tipo }),
         });
       }
 
@@ -128,34 +131,84 @@ export default function UserForm() {
 
         <div className="flex items-center gap-3 mb-8">
           <div className="h-12 w-12 rounded-2xl bg-primary/10 grid place-items-center">
-            {isEditing ? <Save className="h-6 w-6 text-primary" /> : <UserPlus className="h-6 w-6 text-primary" />}
+            {isEditing
+              ? <Save className="h-6 w-6 text-primary" />
+              : <UserPlus className="h-6 w-6 text-primary" />
+            }
           </div>
           <div>
             <h1 className="text-3xl font-bold">{isEditing ? "Editar Usuario" : "Crear Usuario"}</h1>
             <p className="text-muted-foreground">
-              {isEditing ? "Modifica los datos del usuario" : "Registra un nuevo usuario en el sistema"}
+              {isEditing
+                ? "Modifica los datos del usuario"
+                : "Registra un nuevo usuario en el sistema"}
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-card rounded-3xl shadow-card p-8 space-y-6">
+          {/* Nombre */}
           <div className="space-y-2">
             <Label htmlFor="nombre">Nombre Completo *</Label>
-            <Input id="nombre" required value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Juan Pérez" disabled={loading} />
+            <Input
+              id="nombre"
+              required
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              placeholder="Juan Pérez"
+              disabled={loading}
+            />
           </div>
+
+          {/* Email */}
           <div className="space-y-2">
             <Label htmlFor="email">Email *</Label>
-            <Input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="juan@cocina.com" disabled={loading} />
+            <Input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="juan@cocina.com"
+              disabled={loading}
+            />
           </div>
+
+          {/* Contraseña — solo en modo creación */}
           {!isEditing && (
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña *</Label>
-              <Input id="password" type="password" required={!isEditing} value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" disabled={loading} />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required={!isEditing}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  disabled={loading}
+                  className="pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200 focus:outline-none"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword
+                    ? <EyeOff className="h-5 w-5" />
+                    : <Eye className="h-5 w-5" />
+                  }
+                </button>
+              </div>
             </div>
           )}
+
+          {/* Rol */}
           <div className="space-y-2">
             <Label htmlFor="rol">Rol *</Label>
-            <Select value={rol} onValueChange={v => setRol(v as Role)} disabled={loading}>
+            <Select value={rol} onValueChange={(v) => setRol(v as Role)} disabled={loading}>
               <SelectTrigger><SelectValue placeholder="Seleccionar rol" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="administrador">Administrador</SelectItem>
@@ -165,17 +218,25 @@ export default function UserForm() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Tipo (opcional) */}
           <div className="space-y-2">
             <Label htmlFor="tipo">Tipo (opcional)</Label>
-            <Input 
-              id="tipo" 
-              value={tipo} 
-              onChange={e => setTipo(e.target.value)} 
-              placeholder="Ej: Planta, Contrato, Temporal" 
-              disabled={loading} 
+            <Input
+              id="tipo"
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+              placeholder="Ej: Planta, Contrato, Temporal"
+              disabled={loading}
             />
           </div>
-          <Button type="submit" size="lg" className="w-full text-lg font-semibold shadow-soft" disabled={loading}>
+
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full text-lg font-semibold shadow-soft"
+            disabled={loading}
+          >
             {loading ? "Guardando..." : isEditing ? "Guardar Cambios" : "Crear Usuario"}
           </Button>
         </form>
