@@ -28,6 +28,8 @@ from .menu_views import MenuListView, MenuDetailView, DetalleMenuView # CU23
 from .movimiento_views import MovimientoListView, MovimientoDetailView #CU14
 from .alerta_views import AlertaListView, AlertaConteoView, AlertaDetailView # CU13
 
+from .cierre_turno_views import CierreTurnoView, ValidarCierreTurnoView  # CU15
+
 """
 Configuración de rutas (URLs) para la app de Usuarios.
 
@@ -135,5 +137,13 @@ urlpatterns = [
     path('alertas/', AlertaListView.as_view(), name='alerta-list'),
     path('alertas/conteo/', AlertaConteoView.as_view(), name='alerta-conteo'),
     path('alertas/<int:alerta_id>/', AlertaDetailView.as_view(), name='alerta-detail'),
+
+    # ============================================
+    #             ---- CICLO #4 ----
+    # ============================================
+    # ---- CU15 VALIDAR CIERRE DE TURNO ----
+    # IMPORTANTE: validar/ va ANTES si en el futuro se agrega <int:id>/ a este recurso
+    path('cierre-turno/', CierreTurnoView.as_view(), name='cierre-turno'),
+    path('cierre-turno/validar/', ValidarCierreTurnoView.as_view(), name='cierre-turno-validar'),
 
 ]

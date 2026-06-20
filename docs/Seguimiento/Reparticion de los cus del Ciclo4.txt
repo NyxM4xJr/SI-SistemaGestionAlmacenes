@@ -1,0 +1,16 @@
+*DISTRIBUCION CUS CICLO 4*
+
+ADALID
+	- CU19 Independiente (necesita del cu17)
+	- CU26 Independiente (necesita del cu14)
+KAREN
+	- CU15 Independiente (necesita del cu14 y cu21)
+	- CU27 Independiente (necesita del cu21 y cu22)
+	- CU24 Independiente (necesita del cu23 y cu09)
+MATEO
+	- CU25 Independiente (necesita del cu14)
+	- CU29 Dependiente (CU25 y 26) (Tambien necesita del CU14)
+	- CU16 Independiente (necesita del CU14, CU21 y CU12)
+MARCOS
+	- CU28 Independiente (necesita del CU10 y CU09)
+	- CU31 Independiente *NUEVO CU* (no necesita de otro cu)
