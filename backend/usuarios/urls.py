@@ -29,6 +29,11 @@ from .movimiento_views import MovimientoListView, MovimientoDetailView #CU14
 from .alerta_views import AlertaListView, AlertaConteoView, AlertaDetailView # CU13
 
 from .cierre_turno_views import CierreTurnoView, ValidarCierreTurnoView  # CU15
+from .reporte_costos_views import (                                       # CU27
+    ReporteCostosView,
+    ReporteCostosPDFView,
+    ReporteCostosExcelView,
+)
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -145,5 +150,10 @@ urlpatterns = [
     # IMPORTANTE: validar/ va ANTES si en el futuro se agrega <int:id>/ a este recurso
     path('cierre-turno/', CierreTurnoView.as_view(), name='cierre-turno'),
     path('cierre-turno/validar/', ValidarCierreTurnoView.as_view(), name='cierre-turno-validar'),
+
+    # ---- CU27 GENERAR REPORTE DE COSTOS POR PLATO ----
+    path('reportes/costos-plato/', ReporteCostosView.as_view(), name='reporte-costos'),
+    path('reportes/costos-plato/pdf/', ReporteCostosPDFView.as_view(), name='reporte-costos-pdf'),
+    path('reportes/costos-plato/excel/', ReporteCostosExcelView.as_view(), name='reporte-costos-excel'),
 
 ]

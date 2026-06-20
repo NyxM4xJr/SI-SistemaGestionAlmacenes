@@ -252,7 +252,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu27",
         label: "Reporte de Costos por Plato",
-        path: "",
+        path: "/reportes/costos",
         roles: ["gerente", "chef", "administrador"],
       },
       {

@@ -78,6 +78,9 @@ import Estacionalidad from "./pages/Estacionalidad/Estacionalidad";
 // CU15 - Validar Cierre de Turno
 import CierreTurno from "./pages/CierreTurno/CierreTurno";
 
+// CU27 - Generar Reporte de Costos por Plato
+import ReporteCostos from "./pages/Reportes/ReporteCostos";
+
 
 const queryClient = new QueryClient();
 
@@ -151,6 +154,7 @@ const App = () => (
             <Route path="/menus" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><MenuList /></ProtectedRoute>} />
             <Route path="/menus/:id" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><MenuDetalle /></ProtectedRoute>} />
 
+
           {/* PAQUETE 5: Proveedores */}
             {/* CU17 - Gestionar Proveedores */}
             <Route path="/proveedores" element={<ProtectedRoute roles={["administrador", "gerente"]}><ProveedorList /></ProtectedRoute>} />
@@ -159,14 +163,20 @@ const App = () => (
             <Route path="/proveedores/asociar" element={<ProtectedRoute roles={["administrador"]}><AsociarInsumos /></ProtectedRoute>} />
 
             
-            {/* Placeholders — módulos pendientes de implementación */}
+
+          {/* PAQUETE 6: Reportes y Análisis */}
+            {/* CU27 - Generar Reporte de Costos por Plato */}
+            <Route path="/reportes/costos" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><ReporteCostos /></ProtectedRoute>} />
+
+
+
+          {/* Placeholders — módulos pendientes de implementación */}
             <Route path="/descargo" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/merma-tecnica" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/sugerir-menu" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/proveedores/mapa" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/valor-perdido" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/rotacion" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/reportes/costos" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/comparativa" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
 
