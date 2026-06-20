@@ -72,6 +72,19 @@ import HistorialPrecios from "./pages/HistorialPrecios/HistorialPrecios";
 // CU10 - Estacionalidad de Insumos
 import Estacionalidad from "./pages/Estacionalidad/Estacionalidad";
 
+
+
+// ── Ciclo 4 ──────────────────────────────────────────────────
+// CU15 - Validar Cierre de Turno
+import CierreTurno from "./pages/CierreTurno/CierreTurno";
+
+// CU27 - Generar Reporte de Costos por Plato
+import ReporteCostos from "./pages/Reportes/ReporteCostos";
+
+// CU24 - Consultar Sugerencia de Menú por Temporada
+import SugerirMenu from "./pages/Menus/SugerirMenu";
+
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -125,6 +138,9 @@ const App = () => (
             {/* CU13 - Alertas de Stock */}
             <Route path="/alertas" element={<ProtectedRoute roles={["administrador", "chef"]}><AlertaList /></ProtectedRoute>} />
 
+            {/* CU15 - Validar Cierre de Turno */}
+            <Route path="/cierre-turno" element={<ProtectedRoute roles={["chef"]}><CierreTurno /></ProtectedRoute>} />
+
           {/* PAQUETE 4: Menús y Recetas */}
 
             {/* CU20 - Gestionar Platos del Menú */}
@@ -141,6 +157,9 @@ const App = () => (
             <Route path="/menus" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><MenuList /></ProtectedRoute>} />
             <Route path="/menus/:id" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><MenuDetalle /></ProtectedRoute>} />
 
+            {/* CU24 - Consultar Sugerencia de Menú por Temporada */}
+            <Route path="/sugerir-menu" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><SugerirMenu /></ProtectedRoute>} />
+
           {/* PAQUETE 5: Proveedores */}
             {/* CU17 - Gestionar Proveedores */}
             <Route path="/proveedores" element={<ProtectedRoute roles={["administrador", "gerente"]}><ProveedorList /></ProtectedRoute>} />
@@ -149,15 +168,19 @@ const App = () => (
             <Route path="/proveedores/asociar" element={<ProtectedRoute roles={["administrador"]}><AsociarInsumos /></ProtectedRoute>} />
 
             
-            {/* Placeholders — módulos pendientes de implementación */}
-            <Route path="/cierre-turno" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
+
+          {/* PAQUETE 6: Reportes y Análisis */}
+            {/* CU27 - Generar Reporte de Costos por Plato */}
+            <Route path="/reportes/costos" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><ReporteCostos /></ProtectedRoute>} />
+
+
+
+          {/* Placeholders — módulos pendientes de implementación */}
             <Route path="/descargo" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/merma-tecnica" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/sugerir-menu" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/proveedores/mapa" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/valor-perdido" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/rotacion" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/reportes/costos" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/comparativa" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
 

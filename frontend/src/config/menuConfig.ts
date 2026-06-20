@@ -145,7 +145,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu15",
         label: "Validar Cierre de Turno",
-        path: "",
+        path: "/cierre-turno",
         roles: ["chef"],
       },
       {
@@ -198,7 +198,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu24",
         label: "Sugerir Menú por Temporada",
-        path: "",
+        path: "/sugerir-menu",
         roles: ["chef", "gerente"],
       },
     ],
@@ -252,7 +252,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu27",
         label: "Reporte de Costos por Plato",
-        path: "",
+        path: "/reportes/costos",
         roles: ["gerente", "chef", "administrador"],
       },
       {
