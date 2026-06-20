@@ -81,6 +81,9 @@ import CierreTurno from "./pages/CierreTurno/CierreTurno";
 // CU27 - Generar Reporte de Costos por Plato
 import ReporteCostos from "./pages/Reportes/ReporteCostos";
 
+// CU24 - Consultar Sugerencia de Menú por Temporada
+import SugerirMenu from "./pages/Menus/SugerirMenu";
+
 
 const queryClient = new QueryClient();
 
@@ -154,6 +157,8 @@ const App = () => (
             <Route path="/menus" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><MenuList /></ProtectedRoute>} />
             <Route path="/menus/:id" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><MenuDetalle /></ProtectedRoute>} />
 
+            {/* CU24 - Consultar Sugerencia de Menú por Temporada */}
+            <Route path="/sugerir-menu" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><SugerirMenu /></ProtectedRoute>} />
 
           {/* PAQUETE 5: Proveedores */}
             {/* CU17 - Gestionar Proveedores */}
@@ -173,7 +178,6 @@ const App = () => (
           {/* Placeholders — módulos pendientes de implementación */}
             <Route path="/descargo" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/merma-tecnica" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/sugerir-menu" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/proveedores/mapa" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/valor-perdido" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/rotacion" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />

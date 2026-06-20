@@ -198,7 +198,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu24",
         label: "Sugerir Menú por Temporada",
-        path: "",
+        path: "/sugerir-menu",
         roles: ["chef", "gerente"],
       },
     ],

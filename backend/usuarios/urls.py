@@ -34,6 +34,7 @@ from .reporte_costos_views import (                                       # CU27
     ReporteCostosPDFView,
     ReporteCostosExcelView,
 )
+from .sugerencia_menu_views import SugerirMenuView  # CU24
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -155,5 +156,11 @@ urlpatterns = [
     path('reportes/costos-plato/', ReporteCostosView.as_view(), name='reporte-costos'),
     path('reportes/costos-plato/pdf/', ReporteCostosPDFView.as_view(), name='reporte-costos-pdf'),
     path('reportes/costos-plato/excel/', ReporteCostosExcelView.as_view(), name='reporte-costos-excel'),
+
+    # ---- CU24 CONSULTAR SUGERENCIA DE MENÚ POR TEMPORADA ----
+    # NOTA: "Agregar a Menú" reutiliza el endpoint YA EXISTENTE de CU23
+    # (POST /api/menus/<id>/platos/, ver DetalleMenuView arriba), no se
+    # crea un endpoint de escritura propio para esto.
+    path('sugerir-menu/', SugerirMenuView.as_view(), name='sugerir-menu'),
 
 ]
