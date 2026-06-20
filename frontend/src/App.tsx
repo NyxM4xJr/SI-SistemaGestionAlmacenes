@@ -72,6 +72,13 @@ import HistorialPrecios from "./pages/HistorialPrecios/HistorialPrecios";
 // CU10 - Estacionalidad de Insumos
 import Estacionalidad from "./pages/Estacionalidad/Estacionalidad";
 
+
+
+// ── Ciclo 4 ──────────────────────────────────────────────────
+// CU15 - Validar Cierre de Turno
+import CierreTurno from "./pages/CierreTurno/CierreTurno";
+
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -125,6 +132,9 @@ const App = () => (
             {/* CU13 - Alertas de Stock */}
             <Route path="/alertas" element={<ProtectedRoute roles={["administrador", "chef"]}><AlertaList /></ProtectedRoute>} />
 
+            {/* CU15 - Validar Cierre de Turno */}
+            <Route path="/cierre-turno" element={<ProtectedRoute roles={["chef"]}><CierreTurno /></ProtectedRoute>} />
+
           {/* PAQUETE 4: Menús y Recetas */}
 
             {/* CU20 - Gestionar Platos del Menú */}
@@ -150,7 +160,6 @@ const App = () => (
 
             
             {/* Placeholders — módulos pendientes de implementación */}
-            <Route path="/cierre-turno" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/descargo" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/merma-tecnica" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/sugerir-menu" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />

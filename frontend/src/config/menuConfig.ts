@@ -145,7 +145,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu15",
         label: "Validar Cierre de Turno",
-        path: "",
+        path: "/cierre-turno",
         roles: ["chef"],
       },
       {
