@@ -27,6 +27,7 @@ from .menu_views import MenuListView, MenuDetailView, DetalleMenuView # CU23
 
 from .movimiento_views import MovimientoListView, MovimientoDetailView #CU14
 from .alerta_views import AlertaListView, AlertaConteoView, AlertaDetailView # CU13
+from .reporte_views import ReporteComparativaPreciosView, ReporteComparativaPDFView, ReporteComparativaExcelView
 
 from .cierre_turno_views import CierreTurnoView, ValidarCierreTurnoView  # CU15
 from .reporte_costos_views import (  # CU27
@@ -48,6 +49,12 @@ from .reporte_valor_perdido_views import (   # CU25
 from .dashboard_kpis_views import DashboardKPIsView  # CU29
 from .descargo_views import DescargoAutomaticoView, ConfirmarDescargoView  # CU16
 from .comando_voz_views import LogComandoVozView  # CU32
+from .pago_views import (  # CU31
+    CrearSesionPagoView,
+    StripeWebhookView,
+    HistorialPagosView,
+    SaldoPagosView
+)
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -202,4 +209,17 @@ urlpatterns = [
     # enteramente en el frontend (useComandoVoz.ts, en AppHeader).
     path('bitacora/log-accion-voz/', LogComandoVozView.as_view(), name='log-comando-voz'),
 
+    # ---- CU31 PASARELA DE PAGOS (STRIPE) ----
+    path('pagos/crear-sesion/', CrearSesionPagoView.as_view(), name='pago-crear-sesion'),
+    path('pagos/webhook/', StripeWebhookView.as_view(), name='pago-webhook'),
+    path('pagos/historial/', HistorialPagosView.as_view(), name='pago-historial'),
+    path('pagos/saldo/', SaldoPagosView.as_view(), name='pago-saldo'),
+
+    # ==========================
+    # PAQUETE 6: Reportes y Análisis
+    # ==========================
+    # CU28: Generar Reporte Comparativa de Precios
+    path('reportes/comparativa-precios/', ReporteComparativaPreciosView.as_view(), name='reporte-comparativa'),
+    path('reportes/comparativa-precios/pdf/', ReporteComparativaPDFView.as_view(), name='reporte-comparativa-pdf'),
+    path('reportes/comparativa-precios/excel/', ReporteComparativaExcelView.as_view(), name='reporte-comparativa-excel'),
 ]

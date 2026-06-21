@@ -87,6 +87,10 @@ import SugerirMenu from "./pages/Menus/SugerirMenu";
 // CU19 - Localizar Proveedores mediante Mapa
 import MapaProveedores from "./pages/Proveedores/MapaProveedores";
 
+// CU31 - Pasarela de Pagos (Stripe)
+import PagoDeposito from "./pages/Pagos/PagoDeposito";
+import HistorialPagos from "./pages/Pagos/HistorialPagos";
+
 // CU26 - Generar Reporte de Rotacion de Inventario
 import ReporteRotacion from "./pages/Reportes/ReporteRotacion";
 
@@ -95,6 +99,7 @@ import ReporteValorPerdido from "./pages/Reportes/ReporteValorPerdido";
 
 // CU29 - Visualizar Dashboard de KPIs
 import DashboardKPIs from "./pages/Dashboard/DashboardKPIs";
+import ReporteComparativa from "@/pages/Reportes/ReporteComparativa";
 
 // CU16 - Generar Propuesta de Descargo Automático
 import DescargoAutomatico from "./pages/Descargo/DescargoAutomatico";
@@ -192,6 +197,9 @@ const App = () => (
             {/* CU19 - Localizar Proveedores mediante Mapa */}
             <Route path="/proveedores/mapa" element={<ProtectedRoute roles={["administrador", "gerente"]}><MapaProveedores /></ProtectedRoute>} />
 
+            {/* CU31 - Pasarela de Pagos (Stripe) */}
+            <Route path="/pagos/depositar" element={<ProtectedRoute roles={["administrador"]}><PagoDeposito /></ProtectedRoute>} />
+            <Route path="/pagos/historial" element={<ProtectedRoute roles={["administrador", "gerente"]}><HistorialPagos /></ProtectedRoute>} />
 
 
           {/* PAQUETE 6: Reportes y Análisis */}
@@ -210,7 +218,7 @@ const App = () => (
 
           {/* Placeholders — módulos pendientes de implementación */}
             <Route path="/merma-tecnica" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/reportes/comparativa" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
+            <Route path="/reportes/comparativa-precios" element={<ProtectedRoute roles={["administrador", "gerente"]}><ReporteComparativa /></ProtectedRoute>} />
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
