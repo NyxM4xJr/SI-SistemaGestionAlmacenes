@@ -240,7 +240,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu25",
         label: "Reporte de Valor Perdido",
-        path: "",
+        path: "/reportes/valor-perdido",
         roles: ["administrador", "gerente"],
       },
       {

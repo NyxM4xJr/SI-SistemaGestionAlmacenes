@@ -90,6 +90,9 @@ import MapaProveedores from "./pages/Proveedores/MapaProveedores";
 // CU26 - Generar Reporte de Rotacion de Inventario
 import ReporteRotacion from "./pages/Reportes/ReporteRotacion";
 
+// CU25 - Generar Reporte de Valor Perdido
+import ReporteValorPerdido from "./pages/Reportes/ReporteValorPerdido";
+
 
 const queryClient = new QueryClient();
 
@@ -173,20 +176,23 @@ const App = () => (
             {/* CU18 - Asociar Insumos a Proveedores */}
             <Route path="/proveedores/asociar" element={<ProtectedRoute roles={["administrador"]}><AsociarInsumos /></ProtectedRoute>} />
 
-            
+            {/* CU19 - Localizar Proveedores mediante Mapa */}
+            <Route path="/proveedores/mapa" element={<ProtectedRoute roles={["administrador", "gerente"]}><MapaProveedores /></ProtectedRoute>} />
 
           {/* PAQUETE 6: Reportes y Análisis */}
             {/* CU27 - Generar Reporte de Costos por Plato */}
             <Route path="/reportes/costos" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><ReporteCostos /></ProtectedRoute>} />
 
+            {/* CU25 - Generar Reporte de Valor Perdido */}
+            <Route path="/reportes/valor-perdido" element={<ProtectedRoute roles={["administrador", "gerente"]}><ReporteValorPerdido /></ProtectedRoute>} />
+            
+            {/* CU26 - Generar Reporte de Rotacion de Inventario */}
+            <Route path="/reportes/rotacion" element={<ProtectedRoute roles={["administrador", "gerente"]}><ReporteRotacion /></ProtectedRoute>} />
 
 
           {/* Placeholders — módulos pendientes de implementación */}
             <Route path="/descargo" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/merma-tecnica" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/proveedores/mapa" element={<ProtectedRoute roles={["administrador", "gerente"]}><MapaProveedores /></ProtectedRoute>} />
-            <Route path="/reportes/valor-perdido" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/reportes/rotacion" element={<ProtectedRoute roles={["administrador", "gerente"]}><ReporteRotacion /></ProtectedRoute>} />
             <Route path="/reportes/comparativa" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
 
