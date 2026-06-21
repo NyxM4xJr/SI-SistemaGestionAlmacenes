@@ -264,7 +264,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu29",
         label: "Dashboard de KPIs",
-        path: "",
+        path: "/dashboard",
         roles: ["administrador", "gerente"],
       },
     ],

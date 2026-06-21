@@ -93,6 +93,8 @@ import ReporteRotacion from "./pages/Reportes/ReporteRotacion";
 // CU25 - Generar Reporte de Valor Perdido
 import ReporteValorPerdido from "./pages/Reportes/ReporteValorPerdido";
 
+// CU29 - Visualizar Dashboard de KPIs
+import DashboardKPIs from "./pages/Dashboard/DashboardKPIs";
 
 const queryClient = new QueryClient();
 
@@ -104,6 +106,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+
           {/* PAQUETE 1: Administración de Usuarios */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
@@ -118,6 +121,7 @@ const App = () => (
             <Route path="/admin/roles" element={<ProtectedRoute roles={["administrador"]}><AdminRoles /></ProtectedRoute>} />
             <Route path="/bitacora" element={<ProtectedRoute roles={["administrador", "gerente"]}><BitacoraList /></ProtectedRoute>} />
 
+
           {/* PAQUETE 2: Gestión de Insumos */}
             <Route path="/insumos" element={<ProtectedRoute roles={["administrador", "chef"]}><InsumoList /></ProtectedRoute>} />
             <Route path="/insumos/crear" element={<ProtectedRoute roles={["administrador"]}><InsumoForm /></ProtectedRoute>} />
@@ -130,6 +134,7 @@ const App = () => (
             
               {/* CU10 - Estacionalidad de Insumos */}
             <Route path="/historial-precios" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><HistorialPrecios /></ProtectedRoute>} />
+
 
           {/* PAQUETE 3: Inventario - Stock */}
             <Route path="/stock" element={<ProtectedRoute roles={["administrador", "chef"]}><StockList /></ProtectedRoute>} />
@@ -150,6 +155,7 @@ const App = () => (
             {/* CU15 - Validar Cierre de Turno */}
             <Route path="/cierre-turno" element={<ProtectedRoute roles={["chef"]}><CierreTurno /></ProtectedRoute>} />
 
+
           {/* PAQUETE 4: Menús y Recetas */}
 
             {/* CU20 - Gestionar Platos del Menú */}
@@ -169,6 +175,7 @@ const App = () => (
             {/* CU24 - Consultar Sugerencia de Menú por Temporada */}
             <Route path="/sugerir-menu" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><SugerirMenu /></ProtectedRoute>} />
 
+
           {/* PAQUETE 5: Proveedores */}
             {/* CU17 - Gestionar Proveedores */}
             <Route path="/proveedores" element={<ProtectedRoute roles={["administrador", "gerente"]}><ProveedorList /></ProtectedRoute>} />
@@ -178,6 +185,8 @@ const App = () => (
 
             {/* CU19 - Localizar Proveedores mediante Mapa */}
             <Route path="/proveedores/mapa" element={<ProtectedRoute roles={["administrador", "gerente"]}><MapaProveedores /></ProtectedRoute>} />
+
+
 
           {/* PAQUETE 6: Reportes y Análisis */}
             {/* CU27 - Generar Reporte de Costos por Plato */}
@@ -189,12 +198,14 @@ const App = () => (
             {/* CU26 - Generar Reporte de Rotacion de Inventario */}
             <Route path="/reportes/rotacion" element={<ProtectedRoute roles={["administrador", "gerente"]}><ReporteRotacion /></ProtectedRoute>} />
 
+            {/* CU29 - Visualizar Dashboard de KPIs */}
+            <Route path="/dashboard" element={<ProtectedRoute roles={["administrador", "gerente"]}><DashboardKPIs /></ProtectedRoute>} />
+
 
           {/* Placeholders — módulos pendientes de implementación */}
             <Route path="/descargo" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/merma-tecnica" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/comparativa" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
