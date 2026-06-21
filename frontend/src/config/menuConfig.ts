@@ -151,9 +151,9 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu16",
         label: "Descargo Automático",
-        path: "",
+        path: "/descargo",
         roles: ["administrador", "chef"],
-      },
+      },,
     ],
   },
 
@@ -240,7 +240,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu25",
         label: "Reporte de Valor Perdido",
-        path: "",
+        path: "/reportes/valor-perdido",
         roles: ["administrador", "gerente"],
       },
       {
@@ -264,7 +264,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu29",
         label: "Dashboard de KPIs",
-        path: "",
+        path: "/dashboard",
         roles: ["administrador", "gerente"],
       },
     ],

@@ -14,6 +14,13 @@
  * de salida) y permite validar el cierre, lo que solo deja
  * constancia en la bitácora.
  * Sigue el patrón de PlatoForm.tsx / MovimientoList.tsx.
+ *
+ * MODIFICACIÓN (CU16 - Generar Propuesta de Descargo Automático,
+ * Mateo Hurtado, 21/06/26): tras validar el cierre exitosamente,
+ * se habilita un botón "Generar Descargo Automático" que navega
+ * a /descargo pasando {horaDesde, horaHasta, ventas} por estado
+ * de navegación de React Router (sin persistir nada nuevo, mismo
+ * principio de no-persistencia que ya usa este CU).
  * ============================================================
  */
 
@@ -31,6 +38,7 @@ import {
   AlertTriangle,
   TrendingUp,
   TrendingDown,
+  PackageMinus,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -69,6 +77,12 @@ export default function CierreTurno() {
   // ── Estado de la comparativa ──────────────────────────────
   const [comparativa, setComparativa] = useState<ItemComparativa[] | null>(null);
   const [platosSinReceta, setPlatosSinReceta] = useState<PlatoSinReceta[]>([]);
+
+  // ── Estado para CU16 (Descargo Automático) ────────────────
+  // Se guardan las ventas usadas en el último cálculo exitoso,
+  // para pasarlas tal cual a /descargo sin tener que reconstruirlas.
+  const [ventasCalculadas, setVentasCalculadas] = useState<VentaPlato[]>([]);
+  const [cierreValidado, setCierreValidado] = useState(false);
 
   // ── Estado de UI ─────────────────────────────────────────
   const [cargando, setCargando] = useState(true);
@@ -138,6 +152,8 @@ export default function CierreTurno() {
       const resultado = await calcularComparativa(horaDesde, horaHasta, ventas);
       setComparativa(resultado.comparativa);
       setPlatosSinReceta(resultado.platos_sin_receta);
+      setVentasCalculadas(ventas);
+      setCierreValidado(false);
 
       if (resultado.comparativa.length === 0) {
         toast.info("No se encontraron movimientos ni consumo en el rango indicado.");
@@ -165,6 +181,7 @@ export default function CierreTurno() {
         comparativa,
       });
       toast.success("Cierre de turno validado exitosamente.");
+      setCierreValidado(true);
     } catch (err: unknown) {
       const mensaje =
         err instanceof Error ? err.message : "Error al validar el cierre de turno.";
@@ -172,6 +189,17 @@ export default function CierreTurno() {
     } finally {
       setValidando(false);
     }
+  }
+
+  // ── CU16: ir a Descargo Automático con los datos del turno ──
+  function handleIrADescargo() {
+    navigate("/descargo", {
+      state: {
+        horaDesde,
+        horaHasta,
+        ventas: ventasCalculadas,
+      },
+    });
   }
 
   // ── Badge de color según % de diferencia ──────────────────
@@ -454,12 +482,17 @@ export default function CierreTurno() {
                 size="lg"
                 className="w-full mt-6 bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-12 font-semibold gap-2"
                 onClick={handleValidar}
-                disabled={validando}
+                disabled={validando || cierreValidado}
               >
                 {validando ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Validando...
+                  </>
+                ) : cierreValidado ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" />
+                    Cierre Validado
                   </>
                 ) : (
                   <>
@@ -468,6 +501,20 @@ export default function CierreTurno() {
                   </>
                 )}
               </Button>
+
+              {/* ── CU16: botón para ir a Descargo Automático ── */}
+              {/* Solo disponible DESPUÉS de validar el cierre exitosamente. */}
+              {cierreValidado && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full mt-3 rounded-xl h-12 font-semibold gap-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+                  onClick={handleIrADescargo}
+                >
+                  <PackageMinus className="h-4 w-4" />
+                  Generar Descargo Automático
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}

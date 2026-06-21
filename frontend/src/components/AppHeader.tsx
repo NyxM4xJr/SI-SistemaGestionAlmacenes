@@ -7,6 +7,11 @@
  * - Agregado badge de campana con conteo de alertas no leídas
  * - El conteo se refresca cada 60 segundos automáticamente
  * - Al hacer clic navega a /alertas
+ *
+ * MODIFICADO: 21/06/26 - CU32 Reportes por Voz con IA (Ciclo 4, Mateo)
+ * - Agregado botón de micrófono (useComandoVoz hook), centralizado
+ *   aquí en vez de duplicado en cada página de reportes, para que
+ *   el comando de voz funcione desde cualquier pantalla del sistema
  * ============================================================
  */
 
@@ -16,8 +21,9 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
 import Sidebar from "./Sidebar";
-import { LogOut, User as UserIcon, Bell } from "lucide-react";
+import { LogOut, User as UserIcon, Bell, Mic, Loader2 } from "lucide-react";
 import { getAlertasConteo } from "@/services/alertaService";
+import { useComandoVoz } from "@/hooks/useComandoVoz";
 
 /**
  * AppHeader - Barra de Navegación Principal.
@@ -34,6 +40,11 @@ export default function AppHeader() {
 
   // ── Estado del badge de alertas ─────────────────────────
   const [conteoAlertas, setConteoAlertas] = useState(0);
+
+  // ── CU32: comando de voz (centralizado en el header) ────
+  const { soportado, escuchando, iniciarReconocimiento } = useComandoVoz(
+    (user as any)?.rol
+  );
 
   // Cargar conteo al montar y cada 60 segundos
   useEffect(() => {
@@ -66,6 +77,28 @@ export default function AppHeader() {
         </div>
 
         <nav className="flex items-center gap-2">
+
+          {/* ── CU32: Comando de voz ── */}
+          {soportado && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={iniciarReconocimiento}
+              disabled={escuchando}
+              title={
+                escuchando
+                  ? "Escuchando..."
+                  : 'Comando de voz (ej: "cuánto cuestan los platos", "cómo va el negocio")'
+              }
+              className={escuchando ? "text-orange-500" : ""}
+            >
+              {escuchando ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Mic className="h-5 w-5" />
+              )}
+            </Button>
+          )}
 
           {/* ── Campana de alertas (CU13) ── */}
           <Button
