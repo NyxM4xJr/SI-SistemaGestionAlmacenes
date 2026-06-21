@@ -35,6 +35,11 @@ from .reporte_costos_views import (                                       # CU27
     ReporteCostosExcelView,
 )
 from .sugerencia_menu_views import SugerirMenuView  # CU24
+from .reporte_valor_perdido_views import (                                # CU25
+    ReporteValorPerdidoView,
+    ReporteValorPerdidoPDFView,
+    ReporteValorPerdidoExcelView,
+)
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -162,5 +167,10 @@ urlpatterns = [
     # (POST /api/menus/<id>/platos/, ver DetalleMenuView arriba), no se
     # crea un endpoint de escritura propio para esto.
     path('sugerir-menu/', SugerirMenuView.as_view(), name='sugerir-menu'),
+
+    # ---- CU25 GENERAR REPORTE DE VALOR PERDIDO ----
+    path('reportes/valor-perdido/', ReporteValorPerdidoView.as_view(), name='reporte-valor-perdido'),
+    path('reportes/valor-perdido/pdf/', ReporteValorPerdidoPDFView.as_view(), name='reporte-valor-perdido-pdf'),
+    path('reportes/valor-perdido/excel/', ReporteValorPerdidoExcelView.as_view(), name='reporte-valor-perdido-excel'),
 
 ]
