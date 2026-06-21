@@ -59,6 +59,19 @@ Tablas consultadas (todas ya existentes):
 
 Bitácora: CONFIRMAR_DESCARGO_AUTOMATICO, solo en la confirmación
 (POST), nunca en el cálculo de la propuesta (GET).
+
+------------------------------------------------------------
+INCIDENTE DETECTADO EN PRODUCCIÓN (Railway, 21/06/26):
+Postgres rechazaba el INSERT con
+'invalid input syntax for type integer: "2.0"'. Causa:
+MOVIMIENTO_INVENTARIO.cantidad es INTEGER en la BD real (no
+NUMERIC/DECIMAL), y el consumo teórico calculado (cantidad de
+receta × unidades vendidas) es float. Solución: 'cantidad_a_descargar'
+se redondea a entero con round() ANTES de comparar contra stock
+(no después), para que la propuesta mostrada al Chef sea
+exactamente la cantidad que se inserta al confirmar. Si redondea
+a 0, el insumo se excluye automáticamente del descargo.
+------------------------------------------------------------
 """
 
 import logging
@@ -208,16 +221,32 @@ def _construir_propuesta(supabase, plato_ids, unidades_por_plato):
     valor_total = 0.0
     insumos_con_problema = []
 
-    for insumo_id, cantidad_requerida in consumo_teorico.items():
-        cantidad_requerida = round(cantidad_requerida, 2)
+    for insumo_id, cantidad_requerida_float in consumo_teorico.items():
+        # MOVIMIENTO_INVENTARIO.cantidad es INTEGER en la base de datos
+        # real (confirmado tras error en producción: Postgres rechaza
+        # valores como "2.0" en una columna entera). Se redondea aquí,
+        # ANTES de comparar contra stock, para que la cantidad que el
+        # Chef ve en la propuesta sea exactamente la misma que se va a
+        # insertar al confirmar — no dos números distintos.
+        cantidad_a_descargar = round(cantidad_requerida_float)
+
         costo_unitario = costo_unitario_por_insumo.get(insumo_id)
         info_stock = stock_por_insumo.get(insumo_id)
         stock_actual = info_stock['cantidad'] if info_stock else 0.0
 
         costo_unitario_disponible = costo_unitario is not None
-        valor_estimado = round(cantidad_requerida * (costo_unitario or 0.0), 2)
+        valor_estimado = round(cantidad_a_descargar * (costo_unitario or 0.0), 2)
 
-        stock_suficiente = info_stock is not None and stock_actual >= cantidad_requerida
+        # Un insumo cuyo consumo teórico redondea a 0 (ej. 0.3 -> 0) no
+        # genera un movimiento real: se excluye con su propio motivo,
+        # igual que los de stock insuficiente, en vez de intentar un
+        # INSERT con cantidad 0 (que no representa una salida real).
+        cantidad_es_cero = cantidad_a_descargar == 0
+        stock_suficiente = (
+            not cantidad_es_cero
+            and info_stock is not None
+            and stock_actual >= cantidad_a_descargar
+        )
 
         if not stock_suficiente:
             insumos_con_problema.append(insumo_id)
@@ -227,12 +256,13 @@ def _construir_propuesta(supabase, plato_ids, unidades_por_plato):
         items.append({
             'insumo_id': insumo_id,
             'insumo_nombre': nombres_insumo.get(insumo_id, 'Desconocido'),
-            'cantidad_a_descargar': cantidad_requerida,
+            'cantidad_a_descargar': cantidad_a_descargar,
             'costo_unitario_vigente': costo_unitario,
             'costo_unitario_disponible': costo_unitario_disponible,
             'valor_estimado': valor_estimado,
             'stock_actual': round(stock_actual, 2),
             'stock_suficiente': stock_suficiente,
+            'cantidad_es_cero': cantidad_es_cero,
         })
 
     items.sort(key=lambda x: x['insumo_nombre'])
@@ -262,13 +292,20 @@ class DescargoAutomaticoView(APIView):
     necesita las unidades vendidas por plato para calcular el
     consumo TEÓRICO a descargar.
 
+    Nota sobre 'cantidad_a_descargar': MOVIMIENTO_INVENTARIO.cantidad
+    es INTEGER en la base de datos real, por lo que el consumo
+    teórico (float) se redondea a entero ANTES de validar contra
+    stock — el número que ve el Chef en la propuesta es exactamente
+    el que se inserta al confirmar. Si redondea a 0, el insumo se
+    excluye automáticamente (no genera una salida real).
+
     Respuesta exitosa (200):
     {
         "items": [
             {
                 "insumo_id": int,
                 "insumo_nombre": str,
-                "cantidad_a_descargar": float,
+                "cantidad_a_descargar": int,
                 "costo_unitario_vigente": float | null,
                 "costo_unitario_disponible": bool,
                 "valor_estimado": float,
@@ -383,7 +420,15 @@ class ConfirmarDescargoView(APIView):
             for item in propuesta['items']:
                 insumo_id = item['insumo_id']
 
-                # F4 (alt anidado) — stock suficiente / insuficiente
+                # F4 (alt anidado) — cantidad cero / stock insuficiente / OK
+                if item.get('cantidad_es_cero'):
+                    insumos_excluidos.append({
+                        'insumo_id': insumo_id,
+                        'insumo_nombre': item['insumo_nombre'],
+                        'motivo': 'La cantidad calculada redondea a 0 (no genera salida real)',
+                    })
+                    continue
+
                 if not item['stock_suficiente']:
                     insumos_excluidos.append({
                         'insumo_id': insumo_id,
@@ -409,7 +454,13 @@ class ConfirmarDescargoView(APIView):
                         'tipo': 'salida',
                         'insumo_id': insumo_id,
                         'stock_id': info_stock['stock_id'],
-                        'cantidad': item['cantidad_a_descargar'],
+                        # int() explícito: salvaguarda adicional, aunque
+                        # cantidad_a_descargar ya viene redondeada como
+                        # entero desde _construir_propuesta(). La columna
+                        # MOVIMIENTO_INVENTARIO.cantidad es INTEGER en la
+                        # BD real — un float como 2.0 es rechazado por
+                        # Postgres ("invalid input syntax for type integer").
+                        'cantidad': int(item['cantidad_a_descargar']),
                         'destino': 'Descargo automático por venta',
                     }).execute()
 
