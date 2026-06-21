@@ -96,6 +96,9 @@ import ReporteValorPerdido from "./pages/Reportes/ReporteValorPerdido";
 // CU29 - Visualizar Dashboard de KPIs
 import DashboardKPIs from "./pages/Dashboard/DashboardKPIs";
 
+// CU16 - Generar Propuesta de Descargo Automático
+import DescargoAutomatico from "./pages/Descargo/DescargoAutomatico";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -155,7 +158,10 @@ const App = () => (
             {/* CU15 - Validar Cierre de Turno */}
             <Route path="/cierre-turno" element={<ProtectedRoute roles={["chef"]}><CierreTurno /></ProtectedRoute>} />
 
+            {/* CU16 - Generar Propuesta de Descargo automático */}
+            <Route path="/descargo" element={<ProtectedRoute roles={["administrador", "chef"]}><DescargoAutomatico /></ProtectedRoute>} />
 
+            
           {/* PAQUETE 4: Menús y Recetas */}
 
             {/* CU20 - Gestionar Platos del Menú */}
@@ -203,7 +209,6 @@ const App = () => (
 
 
           {/* Placeholders — módulos pendientes de implementación */}
-            <Route path="/descargo" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/merma-tecnica" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
             <Route path="/reportes/comparativa" element={<ProtectedRoute><Placeholder /></ProtectedRoute>} />
 

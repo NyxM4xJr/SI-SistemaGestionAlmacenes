@@ -151,9 +151,9 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu16",
         label: "Descargo Automático",
-        path: "",
+        path: "/descargo",
         roles: ["administrador", "chef"],
-      },
+      },,
     ],
   },
 

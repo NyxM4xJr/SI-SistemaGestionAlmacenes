@@ -46,6 +46,7 @@ from .reporte_valor_perdido_views import (   # CU25
     ReporteValorPerdidoExcelView,
 )
 from .dashboard_kpis_views import DashboardKPIsView  # CU29
+from .descargo_views import DescargoAutomaticoView, ConfirmarDescargoView  # CU16
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -188,5 +189,10 @@ urlpatterns = [
     # Reutiliza _calcular_reporte_valor_perdido (CU25), _calcular_reporte_costos
     # (CU27) y _calcular_reporte_rotacion (CU26). No registra bitacora (solo lectura).
     path('dashboard/kpis/', DashboardKPIsView.as_view(), name='dashboard-kpis'),
+
+    # ---- CU16 GENERAR PROPUESTA DE DESCARGO AUTOMATICO ----
+    # IMPORTANTE: confirmar/ va ANTES si en el futuro se agrega <int:id>/ a este recurso
+    path('descargo/', DescargoAutomaticoView.as_view(), name='descargo'),
+    path('descargo/confirmar/', ConfirmarDescargoView.as_view(), name='descargo-confirmar'),
 
 ]
