@@ -51,3 +51,36 @@ export async function getSaldoPagos(): Promise<{saldo_total: number}> {
   if (!res.ok) throw new Error(data.error || "Error al obtener el saldo.");
   return data;
 }
+
+// ── CU36 (Ciclo 5): PayPal ───────────────────────────────────
+
+/** POST /api/pagos/paypal/crear-orden/ — Crea orden y devuelve la URL de aprobación */
+export async function crearOrdenPayPal(
+  monto: number,
+  descripcion: string,
+  returnUrl: string,
+  cancelUrl: string
+): Promise<{ order_id: string; approve_url: string }> {
+  const res = await fetch(`${API_URL}/pagos/paypal/crear-orden/`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ monto, descripcion, return_url: returnUrl, cancel_url: cancelUrl }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Error al crear la orden de PayPal.");
+  return data;
+}
+
+/** POST /api/pagos/paypal/capturar/ — Captura la orden aprobada */
+export async function capturarPayPal(
+  orderId: string
+): Promise<{ status: string; order_id: string }> {
+  const res = await fetch(`${API_URL}/pagos/paypal/capturar/`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ order_id: orderId }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Error al capturar el pago de PayPal.");
+  return data;
+}

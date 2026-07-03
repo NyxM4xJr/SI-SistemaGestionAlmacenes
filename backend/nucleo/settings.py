@@ -161,3 +161,24 @@ SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 # Stripe (CU31)
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+
+# ============================================================
+#             ---- CICLO #5 ----
+# ============================================================
+
+# PayPal (CU36) - Segunda pasarela de pago
+PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
+PAYPAL_MODE = os.getenv('PAYPAL_MODE', 'sandbox')  # 'sandbox' o 'live'
+
+# Email / SMTP (CU33) - Notificaciones de alertas por correo
+# Compatible con Gmail (587/TLS), Mailtrap (2525/TLS) y Resend (587/TLS).
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+# TLS/SSL configurables por env; por defecto TLS activado (Gmail/Mailtrap/Resend)
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() == 'true'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # App Password (Gmail) / token (Mailtrap/Resend)
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@sistema.com')

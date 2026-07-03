@@ -6,7 +6,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .pago_services import crear_sesion_stripe, confirmar_pago, get_supabase_client
+from .pago_services import (
+    crear_sesion_stripe,
+    confirmar_pago,
+    get_supabase_client,
+    crear_orden_paypal,
+    capturar_orden_paypal,
+)
 from bitacora.utils import registrar_accion, obtener_ip_cliente
 
 logger = logging.getLogger(__name__)
@@ -155,13 +161,13 @@ class SaldoPagosView(APIView):
     def get(self, request):
         try:
             supabase = get_supabase_client()
-            
+
             # Obtener pagos completados
             response = supabase.table('pagos_sistema') \
                 .select('monto') \
                 .eq('estado', 'completado') \
                 .execute()
-                
+
             pagos = response.data or []
             saldo_total = sum(float(p['monto']) for p in pagos)
 
@@ -169,3 +175,80 @@ class SaldoPagosView(APIView):
         except Exception as e:
             logger.error(f"Error en SaldoPagosView: {str(e)}")
             return Response({'error': 'No se pudo obtener el saldo total'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================
+#   PayPal (CU36 - Ciclo 5)
+# ============================================================
+
+class CrearOrdenPayPalView(APIView):
+    """
+    POST /api/pagos/paypal/crear-orden/
+    Body: { "monto": number, "descripcion": str?, "return_url": str, "cancel_url": str }
+    Devuelve { order_id, approve_url } para redirigir al usuario a PayPal.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        monto = request.data.get('monto')
+        descripcion = request.data.get('descripcion', 'Pago al sistema')
+
+        if not monto or float(monto) <= 0:
+            return Response({'error': 'El monto debe ser mayor a 0.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        origin = request.headers.get('origin', 'http://localhost:5173')
+        return_url = request.data.get('return_url') or f"{origin}/ventas"
+        cancel_url = request.data.get('cancel_url') or f"{origin}/ventas"
+
+        try:
+            resultado = crear_orden_paypal(
+                usuario_id=request.user.id,
+                monto=monto,
+                descripcion=descripcion,
+                return_url=return_url,
+                cancel_url=cancel_url,
+            )
+
+            ip_cliente = obtener_ip_cliente(request)
+            registrar_accion(
+                usuario_id=str(request.user.id),
+                usuario_email=request.user.email,
+                accion="CREAR_ORDEN_PAYPAL",
+                detalles={"ip": ip_cliente, "monto": float(monto), "order_id": resultado.get('order_id')}
+            )
+
+            return Response(resultado, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error en CrearOrdenPayPalView: {str(e)}")
+            return Response({'error': 'No se pudo crear la orden de PayPal'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CapturarPayPalView(APIView):
+    """
+    POST /api/pagos/paypal/capturar/
+    Body: { "order_id": str }
+    Captura la orden aprobada y marca el pago como completado.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        order_id = request.data.get('order_id')
+        if not order_id:
+            return Response({'error': 'Falta order_id.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            resultado = capturar_orden_paypal(order_id)
+
+            if resultado.get('status') == 'COMPLETED':
+                ip_cliente = obtener_ip_cliente(request)
+                registrar_accion(
+                    usuario_id=str(request.user.id),
+                    usuario_email=request.user.email,
+                    accion="PAGO_COMPLETADO",
+                    detalles={"ip": ip_cliente, "order_id": order_id, "metodo": "paypal"}
+                )
+
+            return Response(resultado, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error en CapturarPayPalView: {str(e)}")
+            return Response({'error': 'No se pudo capturar el pago de PayPal'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

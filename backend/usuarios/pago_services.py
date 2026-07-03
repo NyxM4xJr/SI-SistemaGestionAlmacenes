@@ -1,4 +1,6 @@
 import stripe
+import requests
+from datetime import datetime
 from django.conf import settings
 from supabase import create_client
 import logging
@@ -64,17 +66,142 @@ def confirmar_pago(session_id):
     """
     try:
         supabase = get_supabase_client()
-        from datetime import datetime
-        
+
         update_data = {
             'estado': 'completado',
             'fecha_completado': datetime.now().isoformat()
         }
-        
+
         supabase.table('pagos_sistema') \
             .update(update_data) \
             .eq('stripe_session_id', session_id) \
             .execute()
     except Exception as e:
         logger.error(f"Error al confirmar pago en BD: {str(e)}")
+        raise e
+
+
+# ============================================================
+#   PayPal (CU36 - Ciclo 5) — Segunda pasarela de pago
+#   Flujo server-side por redirección (análogo a Stripe):
+#   crear orden -> aprobar en PayPal -> capturar al volver.
+#   NOTA: PayPal sandbox no admite BOB; se usa USD.
+# ============================================================
+
+def _paypal_base_url():
+    """URL base de la API de PayPal según el modo configurado."""
+    if (settings.PAYPAL_MODE or 'sandbox') == 'live':
+        return 'https://api-m.paypal.com'
+    return 'https://api-m.sandbox.paypal.com'
+
+
+def _obtener_token_paypal():
+    """Obtiene un access token OAuth2 (client_credentials)."""
+    resp = requests.post(
+        f"{_paypal_base_url()}/v1/oauth2/token",
+        auth=(settings.PAYPAL_CLIENT_ID, settings.PAYPAL_CLIENT_SECRET),
+        data={'grant_type': 'client_credentials'},
+        timeout=20,
+    )
+    resp.raise_for_status()
+    return resp.json()['access_token']
+
+
+def crear_orden_paypal(usuario_id, monto, descripcion, return_url, cancel_url):
+    """
+    Crea una orden de PayPal (intent CAPTURE) y registra el pago en
+    'pagos_sistema' como pendiente con metodo='paypal'.
+
+    Returns:
+        dict: { 'order_id': str, 'approve_url': str }
+    """
+    try:
+        token = _obtener_token_paypal()
+
+        body = {
+            'intent': 'CAPTURE',
+            'purchase_units': [{
+                'amount': {
+                    'currency_code': 'USD',  # PayPal sandbox no admite BOB
+                    'value': f"{float(monto):.2f}",
+                },
+                'description': (descripcion or 'Pago al sistema')[:127],
+            }],
+            'application_context': {
+                'return_url': return_url,
+                'cancel_url': cancel_url,
+                'user_action': 'PAY_NOW',
+                'shipping_preference': 'NO_SHIPPING',
+            },
+        }
+
+        resp = requests.post(
+            f"{_paypal_base_url()}/v2/checkout/orders",
+            json=body,
+            headers={
+                'Authorization': f'Bearer {token}',
+                'Content-Type': 'application/json',
+            },
+            timeout=20,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        order_id = data['id']
+        approve_url = next(
+            (l['href'] for l in data.get('links', []) if l.get('rel') == 'approve'),
+            None
+        )
+
+        # Registrar en Supabase como pendiente
+        supabase = get_supabase_client()
+        supabase.table('pagos_sistema').insert({
+            'usuario_id': str(usuario_id),
+            'monto': float(monto),
+            'moneda': 'USD',
+            'estado': 'pendiente',
+            'paypal_order_id': order_id,
+            'metodo': 'paypal',
+            'descripcion': descripcion or '',
+        }).execute()
+
+        return {'order_id': order_id, 'approve_url': approve_url}
+    except Exception as e:
+        logger.error(f"Error al crear orden de PayPal: {str(e)}")
+        raise e
+
+
+def capturar_orden_paypal(order_id):
+    """
+    Captura una orden de PayPal aprobada y, si queda COMPLETED,
+    marca el pago como 'completado' en 'pagos_sistema'.
+
+    Returns:
+        dict: { 'status': str, 'order_id': str }
+    """
+    try:
+        token = _obtener_token_paypal()
+
+        resp = requests.post(
+            f"{_paypal_base_url()}/v2/checkout/orders/{order_id}/capture",
+            headers={
+                'Authorization': f'Bearer {token}',
+                'Content-Type': 'application/json',
+            },
+            timeout=20,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        estado = data.get('status')
+
+        if estado == 'COMPLETED':
+            supabase = get_supabase_client()
+            supabase.table('pagos_sistema').update({
+                'estado': 'completado',
+                'fecha_completado': datetime.now().isoformat(),
+            }).eq('paypal_order_id', order_id).execute()
+
+        return {'status': estado, 'order_id': order_id}
+    except Exception as e:
+        logger.error(f"Error al capturar orden de PayPal: {str(e)}")
         raise e

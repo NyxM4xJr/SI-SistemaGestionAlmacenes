@@ -80,3 +80,27 @@ export async function marcarAlertaLeida(
   if (!res.ok) throw new Error(data.error || "Error al marcar la alerta.");
   return data;
 }
+
+// ── CU33 (Ciclo 5): Notificaciones por email ─────────────────
+
+export interface NotificacionResultado {
+  enviado: boolean;
+  motivo?: string;
+  alertas: number;
+  lotes_por_vencer: number;
+  destinatarios: number;
+}
+
+/** POST /api/notificaciones/revisar/ — Revisa alertas/lotes y envía email resumen */
+export async function revisarYNotificar(
+  dias?: number
+): Promise<NotificacionResultado> {
+  const res = await fetch(`${API_URL}/notificaciones/revisar/`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(dias !== undefined ? { dias } : {}),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Error al enviar la notificación.");
+  return data;
+}

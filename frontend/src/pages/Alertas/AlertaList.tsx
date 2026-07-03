@@ -24,6 +24,7 @@ import {
   Filter,
   X,
   BellRing,
+  Mail,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -33,11 +34,13 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppHeader from "@/components/AppHeader";
+import { useAuth } from "@/context/AuthContext";
 
 import {
   type Alerta,
   getAlertas,
   marcarAlertaLeida,
+  revisarYNotificar,
 } from "@/services/alertaService";
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -89,10 +92,14 @@ function EstadoBadge({ leida }: { leida: boolean }) {
 // ── Componente principal ─────────────────────────────────────
 
 export default function AlertaList() {
+  const { user } = useAuth();
+  const puedeNotificar = user?.rol === "administrador" || user?.rol === "gerente";
+
   const [alertas, setAlertas]       = useState<Alerta[]>([]);
   const [filtradas, setFiltradas]   = useState<Alerta[]>([]);
   const [cargando, setCargando]     = useState(true);
   const [marcandoId, setMarcandoId] = useState<number | null>(null);
+  const [notificando, setNotificando] = useState(false);
 
   // Filtros
   const [filtroEstado, setFiltroEstado] = useState<"todas" | "pendiente" | "leida">("todas");
@@ -157,6 +164,27 @@ export default function AlertaList() {
     }
   }
 
+  // ── Revisar y notificar por email (CU33) ─────────────────
+  async function handleNotificar() {
+    try {
+      setNotificando(true);
+      const res = await revisarYNotificar();
+      if (res.enviado) {
+        toast.success(
+          `Correo enviado a ${res.destinatarios} destinatario(s): ` +
+          `${res.alertas} alerta(s), ${res.lotes_por_vencer} lote(s) por vencer.`
+        );
+      } else {
+        toast.info(res.motivo || "No había nada que notificar.");
+      }
+    } catch (err: unknown) {
+      const mensaje = err instanceof Error ? err.message : "Error al enviar la notificación.";
+      toast.error(mensaje);
+    } finally {
+      setNotificando(false);
+    }
+  }
+
   // ── Estadísticas ─────────────────────────────────────────
   const totalPendientes   = alertas.filter((a) => !a.leida).length;
   const totalStockBajo    = alertas.filter((a) => getTipoAlerta(a.mensaje) === "stock_bajo").length;
@@ -212,12 +240,28 @@ export default function AlertaList() {
               Notificaciones generadas automáticamente por el sistema
             </p>
           </div>
-          {totalPendientes > 0 && (
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
-              <BellRing className="h-4 w-4" />
-              {totalPendientes} pendiente{totalPendientes > 1 ? "s" : ""}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {totalPendientes > 0 && (
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
+                <BellRing className="h-4 w-4" />
+                {totalPendientes} pendiente{totalPendientes > 1 ? "s" : ""}
+              </span>
+            )}
+            {puedeNotificar && (
+              <Button
+                onClick={handleNotificar}
+                disabled={notificando}
+                className="rounded-xl h-11 px-4 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                {notificando ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                ) : (
+                  <Mail className="h-4 w-4" />
+                )}
+                Revisar y notificar por email
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* ── Estadísticas ── */}

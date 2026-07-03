@@ -53,8 +53,12 @@ from .pago_views import (  # CU31
     CrearSesionPagoView,
     StripeWebhookView,
     HistorialPagosView,
-    SaldoPagosView
+    SaldoPagosView,
+    CrearOrdenPayPalView,   # CU36 (Ciclo 5)
+    CapturarPayPalView,     # CU36 (Ciclo 5)
 )
+from .notificacion_views import RevisarNotificarView  # CU33 (Ciclo 5)
+from .venta_views import VentaListView, VentaDetailView  # CU35 (Ciclo 5)
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -214,6 +218,20 @@ urlpatterns = [
     path('pagos/webhook/', StripeWebhookView.as_view(), name='pago-webhook'),
     path('pagos/historial/', HistorialPagosView.as_view(), name='pago-historial'),
     path('pagos/saldo/', SaldoPagosView.as_view(), name='pago-saldo'),
+
+    # ---- CU36 PASARELA DE PAGOS (PAYPAL) — Ciclo 5 ----
+    path('pagos/paypal/crear-orden/', CrearOrdenPayPalView.as_view(), name='paypal-crear-orden'),
+    path('pagos/paypal/capturar/', CapturarPayPalView.as_view(), name='paypal-capturar'),
+
+    # ============================================
+    #             ---- CICLO #5 ----
+    # ============================================
+    # ---- CU33 NOTIFICACIONES DE ALERTAS POR EMAIL ----
+    path('notificaciones/revisar/', RevisarNotificarView.as_view(), name='notificaciones-revisar'),
+
+    # ---- CU35 REGISTRAR VENTA DE PLATOS ----
+    path('ventas/', VentaListView.as_view(), name='venta-list'),
+    path('ventas/<int:venta_id>/', VentaDetailView.as_view(), name='venta-detail'),
 
     # ==========================
     # PAQUETE 6: Reportes y Análisis

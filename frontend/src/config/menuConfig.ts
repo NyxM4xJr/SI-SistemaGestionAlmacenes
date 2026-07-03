@@ -154,6 +154,12 @@ export const menuConfig: MenuNode[] = [
         path: "/descargo",
         roles: ["administrador", "chef"],
       },
+      {
+        id: "cu34",
+        label: "Caducidad de Lotes (FEFO)",
+        path: "/caducidad",
+        roles: ["administrador", "chef"],
+      },
     ],
   },
 
@@ -238,6 +244,30 @@ export const menuConfig: MenuNode[] = [
         id: "cu31-historial",
         label: "Historial de Pagos",
         path: "/pagos/historial",
+        roles: ["administrador", "gerente"],
+      },
+    ],
+  },
+
+  // PAQUETE 7: Ventas y Compras (Ciclo 5)
+  {
+    id: "pkg-ventas-compras",
+    label: "Ventas y Compras",
+    roles: ["administrador", "gerente", "chef"],
+    children: [
+      {
+        id: "cu35",
+        label: "Ventas",
+        roles: ["administrador", "gerente", "chef"],
+        children: [
+          { id: "cu35-list", label: "Registro de Ventas", path: "/ventas", roles: ["administrador", "gerente", "chef"] },
+          { id: "cu35-nueva", label: "Nueva Venta", path: "/ventas/nueva", roles: ["administrador", "gerente", "chef"] },
+        ],
+      },
+      {
+        id: "cu37",
+        label: "Órdenes de Compra",
+        path: "/ordenes-compra",
         roles: ["administrador", "gerente"],
       },
     ],
