@@ -151,7 +151,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu16",
         label: "Descargo Automático",
-        path: "",
+        path: "/descargo",
         roles: ["administrador", "chef"],
       },
     ],
@@ -228,6 +228,18 @@ export const menuConfig: MenuNode[] = [
         path: "/proveedores/mapa",
         roles: ["administrador", "gerente"],
       },
+      {
+        id: "cu31-deposito",
+        label: "Depositar Fondos",
+        path: "/pagos/depositar",
+        roles: ["administrador"],
+      },
+      {
+        id: "cu31-historial",
+        label: "Historial de Pagos",
+        path: "/pagos/historial",
+        roles: ["administrador", "gerente"],
+      },
     ],
   },
 
@@ -240,7 +252,7 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu25",
         label: "Reporte de Valor Perdido",
-        path: "",
+        path: "/reportes/valor-perdido",
         roles: ["administrador", "gerente"],
       },
       {
@@ -258,13 +270,13 @@ export const menuConfig: MenuNode[] = [
       {
         id: "cu28",
         label: "Comparativa de Precios",
-        path: "",
+        path: "/reportes/comparativa-precios",
         roles: ["gerente", "administrador"],
       },
       {
         id: "cu29",
         label: "Dashboard de KPIs",
-        path: "",
+        path: "/dashboard",
         roles: ["administrador", "gerente"],
       },
     ],

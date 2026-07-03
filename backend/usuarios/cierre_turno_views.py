@@ -23,6 +23,17 @@ Tablas consultadas (todas ya existentes):
 - DETALLE_RECETA  (receta_id FK -> RECETA, insumo_id FK -> INSUMO)
 - MOVIMIENTO_INVENTARIO (insumo_id FK -> INSUMO)
 - INSUMO          (para mostrar el nombre)
+
+------------------------------------------------------------
+NOTA DE REFACTOR (CU16, Ciclo 4 — Mateo, 21/06/26):
+La lógica de cálculo de consumo teórico (RECETA + DETALLE_RECETA
+multiplicado por unidades vendidas) se extrajo a la función
+compartida _calcular_consumo_teorico(), para que CU16 (Descargo
+Automático) la reutilice sin duplicar código, siguiendo el mismo
+patrón ya usado por CU24 al importar _calcular_reporte_costos()
+de CU27. El comportamiento de CierreTurnoView.get() NO cambia:
+solo se reorganizó el cálculo en una función aparte.
+------------------------------------------------------------
 """
 
 import json
@@ -61,6 +72,66 @@ def _hora_en_rango(timestamp_str, hora_desde, hora_hasta):
         return False
 
 
+def _calcular_consumo_teorico(supabase, plato_ids, unidades_por_plato):
+    """
+    Función compartida entre CU15 (CierreTurnoView) y CU16
+    (DescargoAutomaticoView). Calcula, para una lista de platos
+    vendidos con sus unidades, el consumo teórico acumulado por
+    insumo: Σ (detalle_receta.cantidad × unidades_vendidas_del_plato).
+
+    Args:
+        supabase: cliente de Supabase ya creado.
+        plato_ids (list[int]): IDs de los platos vendidos (con unidades > 0).
+        unidades_por_plato (dict[int, float]): plato_id -> unidades vendidas.
+
+    Returns:
+        tuple(consumo_teorico, platos_sin_receta):
+            consumo_teorico (dict[int, float]): insumo_id -> cantidad acumulada.
+            platos_sin_receta (list[dict]): [{"plato_id": int, "plato_nombre": str}, ...]
+    """
+    recetas_response = supabase.table('receta') \
+        .select('id, plato_id, plato:plato_id(nombre)') \
+        .in_('plato_id', plato_ids) \
+        .execute()
+    recetas = recetas_response.data or []
+
+    platos_con_receta = {r['plato_id'] for r in recetas}
+    plato_ids_sin_receta = [
+        pid for pid in plato_ids if pid not in platos_con_receta
+    ]
+    platos_sin_receta = []
+    if plato_ids_sin_receta:
+        platos_sr_response = supabase.table('plato') \
+            .select('id, nombre') \
+            .in_('id', plato_ids_sin_receta) \
+            .execute()
+        platos_sin_receta = [
+            {'plato_id': p['id'], 'plato_nombre': p['nombre']}
+            for p in (platos_sr_response.data or [])
+        ]
+
+    consumo_teorico = {}  # insumo_id -> cantidad acumulada
+
+    if recetas:
+        receta_ids = [r['id'] for r in recetas]
+        receta_a_plato = {r['id']: r['plato_id'] for r in recetas}
+
+        detalles_response = supabase.table('detalle_receta') \
+            .select('receta_id, insumo_id, cantidad') \
+            .in_('receta_id', receta_ids) \
+            .execute()
+        detalles = detalles_response.data or []
+
+        for d in detalles:
+            plato_id = receta_a_plato.get(d['receta_id'])
+            unidades_vendidas = unidades_por_plato.get(plato_id, 0)
+            cantidad_total = float(d['cantidad']) * unidades_vendidas
+            insumo_id = d['insumo_id']
+            consumo_teorico[insumo_id] = consumo_teorico.get(insumo_id, 0) + cantidad_total
+
+    return consumo_teorico, platos_sin_receta
+
+
 class CierreTurnoView(APIView):
     """
     Endpoint para calcular la comparativa de consumo teórico vs real
@@ -76,7 +147,8 @@ class CierreTurnoView(APIView):
     Flujo:
     1. Valida que hora_desde < hora_hasta.
     2. Valida que exista al menos un plato con unidades > 0.
-    3. Consulta RECETA + DETALLE_RECETA de los platos vendidos -> consumo teórico.
+    3. Consulta RECETA + DETALLE_RECETA de los platos vendidos -> consumo teórico
+       (vía _calcular_consumo_teorico, compartida con CU16).
     4. Consulta MOVIMIENTO_INVENTARIO (tipo=salida, fecha_mov=hoy, hora en rango) -> consumo real.
     5. Cruza ambos resultados por insumo_id y calcula diferencia y % de diferencia.
 
@@ -139,46 +211,10 @@ class CierreTurnoView(APIView):
             plato_ids = [v['plato_id'] for v in ventas_validas]
             unidades_por_plato = {v['plato_id']: v['unidades'] for v in ventas_validas}
 
-            # 1) Consumo teórico: RECETA de los platos vendidos
-            recetas_response = supabase.table('receta') \
-                .select('id, plato_id, plato:plato_id(nombre)') \
-                .in_('plato_id', plato_ids) \
-                .execute()
-            recetas = recetas_response.data or []
-
-            platos_con_receta = {r['plato_id'] for r in recetas}
-            plato_ids_sin_receta = [
-                v['plato_id'] for v in ventas_validas if v['plato_id'] not in platos_con_receta
-            ]
-            platos_sin_receta = []
-            if plato_ids_sin_receta:
-                platos_sr_response = supabase.table('plato') \
-                    .select('id, nombre') \
-                    .in_('id', plato_ids_sin_receta) \
-                    .execute()
-                platos_sin_receta = [
-                    {'plato_id': p['id'], 'plato_nombre': p['nombre']}
-                    for p in (platos_sr_response.data or [])
-                ]
-
-            consumo_teorico = {}  # insumo_id -> cantidad acumulada
-
-            if recetas:
-                receta_ids = [r['id'] for r in recetas]
-                receta_a_plato = {r['id']: r['plato_id'] for r in recetas}
-
-                detalles_response = supabase.table('detalle_receta') \
-                    .select('receta_id, insumo_id, cantidad') \
-                    .in_('receta_id', receta_ids) \
-                    .execute()
-                detalles = detalles_response.data or []
-
-                for d in detalles:
-                    plato_id = receta_a_plato.get(d['receta_id'])
-                    unidades_vendidas = unidades_por_plato.get(plato_id, 0)
-                    cantidad_total = float(d['cantidad']) * unidades_vendidas
-                    insumo_id = d['insumo_id']
-                    consumo_teorico[insumo_id] = consumo_teorico.get(insumo_id, 0) + cantidad_total
+            # 1) Consumo teórico (función compartida con CU16)
+            consumo_teorico, platos_sin_receta = _calcular_consumo_teorico(
+                supabase, plato_ids, unidades_por_plato
+            )
 
             # 2) Consumo real: MOVIMIENTO_INVENTARIO tipo=salida del día actual
             hoy = datetime.now().strftime('%Y-%m-%d')

@@ -18,7 +18,7 @@ from .stock_views import StockListView, StockDetailView
 from .ficha_views import FichaTecnicaView
 from .bitacora_views import DetalleBitacoraListView
 from .plato_views import PlatoListView, PlatoDetailView  # CU20
-from .receta_views import (                                       # CU21
+from .receta_views import (   # CU21
     RecetaListView,
     RecetaDetailView,
     RecetaCatalogosView,
@@ -27,19 +27,34 @@ from .menu_views import MenuListView, MenuDetailView, DetalleMenuView # CU23
 
 from .movimiento_views import MovimientoListView, MovimientoDetailView #CU14
 from .alerta_views import AlertaListView, AlertaConteoView, AlertaDetailView # CU13
+from .reporte_views import ReporteComparativaPreciosView, ReporteComparativaPDFView, ReporteComparativaExcelView
 
 from .cierre_turno_views import CierreTurnoView, ValidarCierreTurnoView  # CU15
-from .reporte_costos_views import (                                       # CU27
+from .reporte_costos_views import (  # CU27
     ReporteCostosView,
     ReporteCostosPDFView,
     ReporteCostosExcelView,
 )
-from .reporte_rotacion_views import (                                     # CU26
+from .reporte_rotacion_views import (  # CU26
     ReporteRotacionView,
     ReporteRotacionPDFView,
     ReporteRotacionExcelView,
 )
 from .sugerencia_menu_views import SugerirMenuView  # CU24
+from .reporte_valor_perdido_views import (   # CU25
+    ReporteValorPerdidoView,
+    ReporteValorPerdidoPDFView,
+    ReporteValorPerdidoExcelView,
+)
+from .dashboard_kpis_views import DashboardKPIsView  # CU29
+from .descargo_views import DescargoAutomaticoView, ConfirmarDescargoView  # CU16
+from .comando_voz_views import LogComandoVozView  # CU32
+from .pago_views import (  # CU31
+    CrearSesionPagoView,
+    StripeWebhookView,
+    HistorialPagosView,
+    SaldoPagosView
+)
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -168,9 +183,43 @@ urlpatterns = [
     # crea un endpoint de escritura propio para esto.
     path('sugerir-menu/', SugerirMenuView.as_view(), name='sugerir-menu'),
 
+    # ---- CU25 GENERAR REPORTE DE VALOR PERDIDO ----
+    path('reportes/valor-perdido/', ReporteValorPerdidoView.as_view(), name='reporte-valor-perdido'),
+    path('reportes/valor-perdido/pdf/', ReporteValorPerdidoPDFView.as_view(), name='reporte-valor-perdido-pdf'),
+    path('reportes/valor-perdido/excel/', ReporteValorPerdidoExcelView.as_view(), name='reporte-valor-perdido-excel'),
+    
     # ---- CU26 GENERAR REPORTE DE ROTACION DE INVENTARIO ----
     path('reportes/rotacion/', ReporteRotacionView.as_view(), name='reporte-rotacion'),
     path('reportes/rotacion/pdf/', ReporteRotacionPDFView.as_view(), name='reporte-rotacion-pdf'),
     path('reportes/rotacion/excel/', ReporteRotacionExcelView.as_view(), name='reporte-rotacion-excel'),
 
+    # ---- CU29 VISUALIZAR DASHBOARD DE KPIs ----
+    # Reutiliza _calcular_reporte_valor_perdido (CU25), _calcular_reporte_costos
+    # (CU27) y _calcular_reporte_rotacion (CU26). No registra bitacora (solo lectura).
+    path('dashboard/kpis/', DashboardKPIsView.as_view(), name='dashboard-kpis'),
+
+    # ---- CU16 GENERAR PROPUESTA DE DESCARGO AUTOMATICO ----
+    # IMPORTANTE: confirmar/ va ANTES si en el futuro se agrega <int:id>/ a este recurso
+    path('descargo/', DescargoAutomaticoView.as_view(), name='descargo'),
+    path('descargo/confirmar/', ConfirmarDescargoView.as_view(), name='descargo-confirmar'),
+
+    # ---- CU32 REPORTES POR VOZ CON IA ----
+    # Único endpoint de este CU: registro de bitácora genérico.
+    # La captura de voz y la interpretación de comandos ocurren
+    # enteramente en el frontend (useComandoVoz.ts, en AppHeader).
+    path('bitacora/log-accion-voz/', LogComandoVozView.as_view(), name='log-comando-voz'),
+
+    # ---- CU31 PASARELA DE PAGOS (STRIPE) ----
+    path('pagos/crear-sesion/', CrearSesionPagoView.as_view(), name='pago-crear-sesion'),
+    path('pagos/webhook/', StripeWebhookView.as_view(), name='pago-webhook'),
+    path('pagos/historial/', HistorialPagosView.as_view(), name='pago-historial'),
+    path('pagos/saldo/', SaldoPagosView.as_view(), name='pago-saldo'),
+
+    # ==========================
+    # PAQUETE 6: Reportes y Análisis
+    # ==========================
+    # CU28: Generar Reporte Comparativa de Precios
+    path('reportes/comparativa-precios/', ReporteComparativaPreciosView.as_view(), name='reporte-comparativa'),
+    path('reportes/comparativa-precios/pdf/', ReporteComparativaPDFView.as_view(), name='reporte-comparativa-pdf'),
+    path('reportes/comparativa-precios/excel/', ReporteComparativaExcelView.as_view(), name='reporte-comparativa-excel'),
 ]
