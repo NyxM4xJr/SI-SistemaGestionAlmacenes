@@ -182,3 +182,6 @@ EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() == 'true'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # App Password (Gmail) / token (Mailtrap/Resend)
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@sistema.com')
+# Timeout (segundos) para que el envío NO cuelgue el worker de gunicorn:
+# si el SMTP no responde, falla rápido y la vista devuelve un error legible.
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '15'))
