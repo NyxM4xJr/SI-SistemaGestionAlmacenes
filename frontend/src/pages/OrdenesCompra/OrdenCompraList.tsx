@@ -76,18 +76,18 @@ export default function OrdenCompraList() {
     try {
       setGenerando(true);
       const res = await generarOrdenesAutomaticas();
-      if (res.ordenes.length === 0) {
-        toast.info("No hay insumos en o por debajo del stock mínimo.");
+      const ordenes = res.ordenes ?? [];
+      const sinProveedor = res.insumos_sin_proveedor ?? [];
+      if (ordenes.length === 0) {
+        toast.info(res.mensaje || "No hay insumos en o por debajo del stock mínimo.");
       } else {
-        const enviadas = res.ordenes.filter((o) => o.email_enviado).length;
+        const enviadas = ordenes.filter((o) => o.email_enviado).length;
         toast.success(
-          `${res.ordenes.length} orden(es) generada(s), ${enviadas} notificada(s) por email.`
+          `${ordenes.length} orden(es) generada(s), ${enviadas} notificada(s) por email.`
         );
       }
-      if (res.insumos_sin_proveedor.length > 0) {
-        toast.warning(
-          `Sin proveedor asociado: ${res.insumos_sin_proveedor.join(", ")}.`
-        );
+      if (sinProveedor.length > 0) {
+        toast.warning(`Sin proveedor asociado: ${sinProveedor.join(", ")}.`);
       }
       await cargar();
     } catch (err: unknown) {

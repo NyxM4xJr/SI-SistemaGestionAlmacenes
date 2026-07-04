@@ -172,7 +172,11 @@ class GenerarOrdenesAutomaticasView(APIView):
 
             if not bajos:
                 return Response(
-                    {'mensaje': 'No hay insumos en o por debajo del stock mínimo.', 'ordenes': []},
+                    {
+                        'mensaje': 'No hay insumos en o por debajo del stock mínimo.',
+                        'ordenes': [],
+                        'insumos_sin_proveedor': [],
+                    },
                     status=status.HTTP_200_OK
                 )
 

@@ -47,6 +47,7 @@ export interface OrdenCompra {
 }
 
 export interface ResultadoGeneracion {
+  mensaje?: string;
   ordenes: {
     orden_id: number;
     proveedor: string;
