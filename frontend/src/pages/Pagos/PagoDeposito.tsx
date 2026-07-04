@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import AppHeader from "@/components/AppHeader";
 import { Input } from "@/components/ui/input";
-import { crearSesionPago, getSaldoPagos } from "@/services/pagoService";
+import { crearSesionPago, crearOrdenPayPal, getSaldoPagos } from "@/services/pagoService";
 import { CreditCard, DollarSign } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+
+type MetodoDeposito = "stripe" | "paypal";
 
 export default function PagoDeposito() {
   const [monto, setMonto] = useState<string>("");
   const [descripcion, setDescripcion] = useState<string>("");
+  const [metodo, setMetodo] = useState<MetodoDeposito>("stripe");
   const [saldo, setSaldo] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -39,9 +42,23 @@ export default function PagoDeposito() {
 
     setLoading(true);
     try {
-      const data = await crearSesionPago(numMonto, descripcion);
-      // Redirigir a Stripe Checkout
-      window.location.href = data.url;
+      if (metodo === "stripe") {
+        const data = await crearSesionPago(numMonto, descripcion);
+        window.location.href = data.url; // Redirigir a Stripe Checkout
+      } else {
+        // PayPal: el backend crea la orden; al volver, HistorialPagos captura.
+        const origin = window.location.origin;
+        const returnUrl = `${origin}/pagos/historial?paypal_capturar=1`;
+        const cancelUrl = `${origin}/pagos/depositar`;
+        const data = await crearOrdenPayPal(
+          numMonto,
+          descripcion || "Depósito al sistema",
+          returnUrl,
+          cancelUrl
+        );
+        if (!data.approve_url) throw new Error("PayPal no devolvió una URL de aprobación.");
+        window.location.href = data.approve_url;
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -60,7 +77,7 @@ export default function PagoDeposito() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">Depositar Fondos</h1>
-            <p className="text-muted-foreground">Recarga el presupuesto del sistema mediante Stripe</p>
+            <p className="text-muted-foreground">Recarga el presupuesto del sistema mediante Stripe o PayPal</p>
           </div>
           <div className="bg-primary/10 text-primary px-4 py-3 rounded-xl border border-primary/20 flex flex-col items-end">
             <span className="text-xs uppercase font-bold tracking-wider opacity-80">Saldo Actual</span>
@@ -70,7 +87,40 @@ export default function PagoDeposito() {
 
         <div className="bg-card rounded-3xl shadow-card p-6 md:p-8">
           <form onSubmit={handleDepositar} className="flex flex-col gap-6">
-            
+
+            <div className="flex flex-col gap-2">
+              <label className="font-semibold text-sm">Método de Pago</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMetodo("stripe")}
+                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-semibold transition ${
+                    metodo === "stripe"
+                      ? "border-blue-600 bg-blue-50 text-blue-700"
+                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                  }`}
+                >
+                  <CreditCard size={18} /> Stripe
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMetodo("paypal")}
+                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-semibold transition ${
+                    metodo === "paypal"
+                      ? "border-[#003087] bg-[#f5f7ff] text-[#003087]"
+                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                  }`}
+                >
+                  Pay<span className="text-[#009cde]">Pal</span>
+                </button>
+              </div>
+              {metodo === "paypal" && (
+                <p className="text-xs text-amber-600">
+                  PayPal (sandbox) procesa el pago en USD.
+                </p>
+              )}
+            </div>
+
             <div className="flex flex-col gap-2">
               <label className="font-semibold text-sm">Monto a Depositar (Bs.)</label>
               <div className="relative">
@@ -102,19 +152,21 @@ export default function PagoDeposito() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl flex justify-center items-center gap-2 transition disabled:opacity-50"
+              className={`mt-4 w-full text-white font-semibold py-3 px-6 rounded-xl flex justify-center items-center gap-2 transition disabled:opacity-50 ${
+                metodo === "stripe" ? "bg-blue-600 hover:bg-blue-700" : "bg-[#003087] hover:bg-[#00256b]"
+              }`}
             >
               {loading ? (
                 <span className="animate-pulse">Procesando...</span>
               ) : (
                 <>
                   <CreditCard size={20} />
-                  Depositar con Stripe
+                  Depositar con {metodo === "stripe" ? "Stripe" : "PayPal"}
                 </>
               )}
             </button>
             <p className="text-center text-xs text-muted-foreground mt-2">
-              Serás redirigido a la pasarela segura de Stripe para completar el pago.
+              Serás redirigido a la pasarela segura de {metodo === "stripe" ? "Stripe" : "PayPal"} para completar el pago.
             </p>
           </form>
         </div>

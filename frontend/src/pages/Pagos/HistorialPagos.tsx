@@ -1,14 +1,41 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "@/components/AppHeader";
-import { getHistorialPagos, Pago } from "@/services/pagoService";
+import { getHistorialPagos, capturarPayPal, Pago } from "@/services/pagoService";
 
 export default function HistorialPagos() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
 
   useEffect(() => {
     cargarPagos();
   }, []);
+
+  // Retorno de PayPal: capturar la orden y marcar el pago como completado
+  useEffect(() => {
+    const capturar = searchParams.get("paypal_capturar");
+    const orderId = searchParams.get("token"); // PayPal añade ?token=<order_id>
+    if (capturar !== "1" || !orderId) return;
+
+    (async () => {
+      try {
+        const res = await capturarPayPal(orderId);
+        if (res.status === "COMPLETED") {
+          toast.success("Depósito con PayPal completado.");
+        } else {
+          toast.warning(`El pago de PayPal quedó en estado: ${res.status}.`);
+        }
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "No se pudo capturar el pago de PayPal.");
+      } finally {
+        setSearchParams({}, { replace: true });
+        cargarPagos();
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const cargarPagos = async () => {
     try {

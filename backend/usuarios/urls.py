@@ -58,7 +58,6 @@ from .pago_views import (  # CU31
     CapturarPayPalView,     # CU36 (Ciclo 5)
 )
 from .notificacion_views import RevisarNotificarView  # CU33 (Ciclo 5)
-from .venta_views import VentaListView, VentaDetailView  # CU35 (Ciclo 5)
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -228,10 +227,6 @@ urlpatterns = [
     # ============================================
     # ---- CU33 NOTIFICACIONES DE ALERTAS POR EMAIL ----
     path('notificaciones/revisar/', RevisarNotificarView.as_view(), name='notificaciones-revisar'),
-
-    # ---- CU35 REGISTRAR VENTA DE PLATOS ----
-    path('ventas/', VentaListView.as_view(), name='venta-list'),
-    path('ventas/<int:venta_id>/', VentaDetailView.as_view(), name='venta-detail'),
 
     # ==========================
     # PAQUETE 6: Reportes y Análisis

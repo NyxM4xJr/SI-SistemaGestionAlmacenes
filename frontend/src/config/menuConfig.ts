@@ -235,6 +235,12 @@ export const menuConfig: MenuNode[] = [
         roles: ["administrador", "gerente"],
       },
       {
+        id: "cu37",
+        label: "Órdenes de Compra",
+        path: "/ordenes-compra",
+        roles: ["administrador", "gerente"],
+      },
+      {
         id: "cu31-deposito",
         label: "Depositar Fondos",
         path: "/pagos/depositar",
@@ -244,30 +250,6 @@ export const menuConfig: MenuNode[] = [
         id: "cu31-historial",
         label: "Historial de Pagos",
         path: "/pagos/historial",
-        roles: ["administrador", "gerente"],
-      },
-    ],
-  },
-
-  // PAQUETE 7: Ventas y Compras (Ciclo 5)
-  {
-    id: "pkg-ventas-compras",
-    label: "Ventas y Compras",
-    roles: ["administrador", "gerente", "chef"],
-    children: [
-      {
-        id: "cu35",
-        label: "Ventas",
-        roles: ["administrador", "gerente", "chef"],
-        children: [
-          { id: "cu35-list", label: "Registro de Ventas", path: "/ventas", roles: ["administrador", "gerente", "chef"] },
-          { id: "cu35-nueva", label: "Nueva Venta", path: "/ventas/nueva", roles: ["administrador", "gerente", "chef"] },
-        ],
-      },
-      {
-        id: "cu37",
-        label: "Órdenes de Compra",
-        path: "/ordenes-compra",
         roles: ["administrador", "gerente"],
       },
     ],

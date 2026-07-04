@@ -108,10 +108,6 @@ import DescargoAutomatico from "./pages/Descargo/DescargoAutomatico";
 // CU34 - Gestión de Caducidad FEFO
 import CaducidadList from "./pages/Caducidad/CaducidadList";
 
-// CU35 - Registrar Venta de Platos
-import VentaList from "./pages/Ventas/VentaList";
-import VentaForm from "./pages/Ventas/VentaForm";
-
 // CU37 - Órdenes de Compra Automáticas
 import OrdenCompraList from "./pages/OrdenesCompra/OrdenCompraList";
 
@@ -227,15 +223,11 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute roles={["administrador", "gerente"]}><DashboardKPIs /></ProtectedRoute>} />
 
 
-          {/* PAQUETE 7: Ciclo 5 — Ventas, Compras y Caducidad */}
+          {/* PAQUETE 7: Ciclo 5 — Caducidad y Compras */}
             {/* CU34 - Gestión de Caducidad FEFO */}
             <Route path="/caducidad" element={<ProtectedRoute roles={["administrador", "chef"]}><CaducidadList /></ProtectedRoute>} />
 
-            {/* CU35 - Registrar Venta de Platos */}
-            <Route path="/ventas" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><VentaList /></ProtectedRoute>} />
-            <Route path="/ventas/nueva" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><VentaForm /></ProtectedRoute>} />
-
-            {/* CU37 - Órdenes de Compra Automáticas */}
+            {/* CU37 - Órdenes de Compra Automáticas (bajo Proveedores) */}
             <Route path="/ordenes-compra" element={<ProtectedRoute roles={["administrador", "gerente"]}><OrdenCompraList /></ProtectedRoute>} />
 
 
