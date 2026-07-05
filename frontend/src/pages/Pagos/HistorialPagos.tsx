@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { RefreshCw, Search, CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 import { useAuth } from "@/context/AuthContext";
 import {
   getHistorialPagos,
   capturarPayPal,
-  obtenerEstadoPayPal,
   aprobarPagoManual,
   rechazarPagoManual,
   Pago,
@@ -19,7 +18,6 @@ export default function HistorialPagos() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
-  const [verificandoId, setVerificandoId] = useState<number | null>(null);
   const [aprobandoId, setAprobandoId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -58,40 +56,6 @@ export default function HistorialPagos() {
       console.error(error);
     }
   };
-
-  // Verificación manual: útil cuando el webhook de PayPal (sandbox) no
-  // confirma el pago solo, o el usuario cerró la pestaña antes de volver.
-  async function handleVerificar(pago: Pago) {
-    if (!pago.paypal_order_id) return;
-    try {
-      setVerificandoId(pago.id);
-      const res = await capturarPayPal(pago.paypal_order_id);
-      if (res.status === "COMPLETED") {
-        toast.success("Pago confirmado: PayPal completó el depósito.");
-      } else {
-        toast.info(`El pago aún no está aprobado en PayPal (estado: ${res.status}).`);
-      }
-      await cargarPagos();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "No se pudo verificar el pago.");
-    } finally {
-      setVerificandoId(null);
-    }
-  }
-
-  // Diagnóstico: consulta el estado REAL en PayPal sin capturar nada
-  async function handleVerEstado(pago: Pago) {
-    if (!pago.paypal_order_id) return;
-    try {
-      const res = await obtenerEstadoPayPal(pago.paypal_order_id);
-      toast.info(`Estado real en PayPal: ${res.status} (orden ${res.order_id})`, {
-        duration: 8000,
-      });
-      console.log("Estado completo de la orden PayPal:", res);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "No se pudo consultar el estado.");
-    }
-  }
 
   // Aprobación manual (solo admin): fallback cuando PayPal sandbox no
   // confirma el pago solo. Intenta capturar en PayPal primero.
@@ -213,28 +177,8 @@ export default function HistorialPagos() {
                     </span>
                   </td>
                   <td className="p-4 text-center">
-                    {pago.estado === "pendiente" && pago.metodo === "paypal" && pago.paypal_order_id && (
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleVerificar(pago)}
-                          disabled={verificandoId === pago.id}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 transition disabled:opacity-50"
-                        >
-                          <RefreshCw className={`h-3.5 w-3.5 ${verificandoId === pago.id ? "animate-spin" : ""}`} />
-                          Verificar pago
-                        </button>
-                        <button
-                          onClick={() => handleVerEstado(pago)}
-                          title="Consultar estado real en PayPal (sin capturar)"
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 bg-gray-50 hover:bg-gray-100 transition"
-                        >
-                          <Search className="h-3.5 w-3.5" />
-                          Ver estado
-                        </button>
-                      </div>
-                    )}
                     {pago.estado === "pendiente" && esAdmin && (
-                      <div className="flex items-center justify-center gap-2 mt-2">
+                      <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleAprobar(pago)}
                           disabled={aprobandoId === pago.id}
