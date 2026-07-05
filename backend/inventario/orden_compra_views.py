@@ -317,10 +317,17 @@ class GenerarOrdenesAutomaticasView(APIView):
             )
 
     def _cuerpo_email(self, orden_id, proveedor, items, total):
+        fecha = datetime.now().strftime('%d/%m/%Y')
+        nombre_proveedor = proveedor.get('nombre', '')
         lineas = [
-            f"Estimado proveedor {proveedor.get('nombre', '')}:",
+            f"Estimados{' de ' + nombre_proveedor if nombre_proveedor else ''}:",
             "",
-            f"Se ha generado la orden de compra #{orden_id} con el siguiente detalle:",
+            f"Reciban un cordial saludo. El sistema ha generado automáticamente una "
+            f"solicitud de reabastecimiento (orden de compra N.º {orden_id}, "
+            f"con fecha {fecha}), correspondiente a insumos cuyo stock se encuentra "
+            f"por debajo del nivel mínimo establecido.",
+            "",
+            "Detalle de la orden:",
             "",
         ]
         for i in items:
@@ -329,9 +336,20 @@ class GenerarOrdenesAutomaticasView(APIView):
                 f"x {i['precio_unitario']} Bs = {i['subtotal']} Bs"
             )
         lineas.append("")
-        lineas.append(f"TOTAL: {total} Bs")
+        lineas.append(f"Total de la compra: {total} Bs")
         lineas.append("")
-        lineas.append("Este es un mensaje automático del sistema de inventario.")
+        lineas.append(
+            "Agradecemos de antemano su atención y quedamos a la espera de su "
+            "confirmación respecto a la disponibilidad y fecha estimada de entrega "
+            "de los insumos solicitados."
+        )
+        lineas.append("")
+        lineas.append("Atentamente,")
+        lineas.append("")
+        lineas.append(
+            "Este mensaje fue generado automáticamente por el Sistema de "
+            "Información para la Gestión de Almacenes Gastronómicos."
+        )
         return "\n".join(lineas)
 
 

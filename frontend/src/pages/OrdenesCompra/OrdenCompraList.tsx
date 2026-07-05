@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Truck,
-  Zap,
+  RefreshCw,
   Mail,
   CheckCircle2,
   PackageCheck,
@@ -126,14 +126,15 @@ export default function OrdenCompraList() {
             </p>
           </div>
           <Button
+            variant="outline"
             onClick={handleGenerar}
             disabled={generando}
-            className="rounded-xl h-11 px-4 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="rounded-xl h-11 px-4 gap-2"
           >
             {generando ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
             ) : (
-              <Zap className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" />
             )}
             Generar automáticas
           </Button>

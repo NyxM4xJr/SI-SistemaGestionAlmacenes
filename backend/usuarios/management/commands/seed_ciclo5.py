@@ -46,9 +46,12 @@ STOCK_SEED = {
 }
 
 # Proveedores de demo (ambos con email para CU37 -> notificación)
+# NOTA: Resend sin dominio verificado solo entrega al email del dueño de
+# la cuenta, por eso ambos proveedores demo usan el mismo correo real
+# (el de la cuenta) en vez de direcciones ficticias @demo.com.
 PROVEEDORES_SEED = [
-    ("Distribuidora Andina", "distribuidora.andina@demo.com"),
-    ("Mercado Central",      "mercado.central@demo.com"),
+    ("Distribuidora Andina", "adalidgragedrojas@gmail.com"),
+    ("Mercado Central",      "adalidgragedrojas@gmail.com"),
 ]
 
 NOMBRES_INSUMOS = [n for n, _, _ in INSUMOS_SEED]
@@ -156,8 +159,10 @@ class Command(BaseCommand):
         for nombre, email in PROVEEDORES_SEED:
             existe = self.sb.table("proveedor").select("id").eq("nombre", nombre).execute()
             if existe.data:
-                resultado[nombre] = existe.data[0]["id"]
-                self.stdout.write(f"  proveedor ya existe: {nombre}")
+                prov_id = existe.data[0]["id"]
+                self.sb.table("proveedor").update({"email": email}).eq("id", prov_id).execute()
+                resultado[nombre] = prov_id
+                self.stdout.write(f"  proveedor ya existe: {nombre} (email actualizado)")
                 continue
             r = self.sb.table("proveedor").insert({
                 "nombre": nombre, "contacto": "70000000",
