@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { RefreshCw } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 import { getHistorialPagos, capturarPayPal, Pago } from "@/services/pagoService";
 
@@ -8,6 +9,7 @@ export default function HistorialPagos() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
+  const [verificandoId, setVerificandoId] = useState<number | null>(null);
 
   useEffect(() => {
     cargarPagos();
@@ -45,6 +47,26 @@ export default function HistorialPagos() {
       console.error(error);
     }
   };
+
+  // Verificación manual: útil cuando el webhook de PayPal (sandbox) no
+  // confirma el pago solo, o el usuario cerró la pestaña antes de volver.
+  async function handleVerificar(pago: Pago) {
+    if (!pago.paypal_order_id) return;
+    try {
+      setVerificandoId(pago.id);
+      const res = await capturarPayPal(pago.paypal_order_id);
+      if (res.status === "COMPLETED") {
+        toast.success("Pago confirmado: PayPal completó el depósito.");
+      } else {
+        toast.info(`El pago aún no está aprobado en PayPal (estado: ${res.status}).`);
+      }
+      await cargarPagos();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "No se pudo verificar el pago.");
+    } finally {
+      setVerificandoId(null);
+    }
+  }
 
   const filtered = pagos.filter((p) => {
     if (filtroEstado === "todos") return true;
@@ -106,6 +128,7 @@ export default function HistorialPagos() {
                 <th className="p-4 text-left">Descripción</th>
                 <th className="p-4 text-right">Monto (Bs.)</th>
                 <th className="p-4 text-center">Estado</th>
+                <th className="p-4 text-center">Acción</th>
               </tr>
             </thead>
             <tbody>
@@ -125,18 +148,30 @@ export default function HistorialPagos() {
                   </td>
                   <td className="p-4 text-center">
                     <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                      pago.estado === 'completado' ? 'bg-green-100 text-green-700' : 
-                      pago.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 
+                      pago.estado === 'completado' ? 'bg-green-100 text-green-700' :
+                      pago.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-700' :
                       'bg-red-100 text-red-700'
                     }`}>
                       {pago.estado}
                     </span>
                   </td>
+                  <td className="p-4 text-center">
+                    {pago.estado === "pendiente" && pago.metodo === "paypal" && pago.paypal_order_id && (
+                      <button
+                        onClick={() => handleVerificar(pago)}
+                        disabled={verificandoId === pago.id}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 transition disabled:opacity-50"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${verificandoId === pago.id ? "animate-spin" : ""}`} />
+                        Verificar pago
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
                     No se encontraron pagos con los filtros seleccionados.
                   </td>
                 </tr>

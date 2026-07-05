@@ -17,6 +17,7 @@ export interface Pago {
   descripcion: string;
   fecha_creacion: string;
   fecha_completado: string | null;
+  paypal_order_id?: string | null;
   usuario?: {
     nombre: string;
     email: string;
