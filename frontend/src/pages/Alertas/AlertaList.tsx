@@ -170,22 +170,13 @@ export default function AlertaList() {
       setNotificando(true);
       const res = await revisarYNotificar();
       const enviados = res.enviados?.length ?? 0;
-      const fallidos = res.fallidos ?? [];
       if (res.enviado) {
         toast.success(
-          `Correo enviado a ${enviados} de ${res.destinatarios} destinatario(s): ` +
+          `Correo enviado (${enviados} destinatario(s)): ` +
           `${res.alertas} alerta(s), ${res.lotes_por_vencer} lote(s) por vencer.`
         );
-      } else if (fallidos.length > 0) {
-        toast.error("No se pudo notificar a ningún destinatario.");
       } else {
         toast.info(res.motivo || "No había nada que notificar.");
-      }
-      if (fallidos.length > 0) {
-        toast.warning(
-          `${fallidos.length} destinatario(s) no recibieron el correo ` +
-          `(el proveedor de email puede restringir a quién se envía).`
-        );
       }
     } catch (err: unknown) {
       const mensaje = err instanceof Error ? err.message : "Error al enviar la notificación.";
