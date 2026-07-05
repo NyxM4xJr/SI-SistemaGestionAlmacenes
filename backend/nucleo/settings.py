@@ -171,17 +171,12 @@ PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
 PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 PAYPAL_MODE = os.getenv('PAYPAL_MODE', 'sandbox')  # 'sandbox' o 'live'
 
-# Email / SMTP (CU33) - Notificaciones de alertas por correo
-# Compatible con Gmail (587/TLS), Mailtrap (2525/TLS) y Resend (587/TLS).
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-# TLS/SSL configurables por env; por defecto TLS activado (Gmail/Mailtrap/Resend)
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() == 'true'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # App Password (Gmail) / token (Mailtrap/Resend)
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@sistema.com')
-# Timeout (segundos) para que el envío NO cuelgue el worker de gunicorn:
-# si el SMTP no responde, falla rápido y la vista devuelve un error legible.
-EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '15'))
+# Email (CU33/CU37) - Notificaciones por correo vía API HTTP de Resend.
+# NO se usa SMTP: Railway bloquea las conexiones SMTP salientes (confirmado
+# en producción: el worker de gunicorn colgaba hasta ser matado por
+# WORKER TIMEOUT al intentar conectar por socket). Resend usa HTTPS
+# (puerto 443), que sí está siempre disponible. Ver nucleo/resend_utils.py.
+RESEND_API_KEY = os.getenv('RESEND_API_KEY')
+# Sin verificar un dominio propio en Resend, el remitente debe ser
+# onboarding@resend.dev y solo se puede enviar al email del dueño de la cuenta.
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')

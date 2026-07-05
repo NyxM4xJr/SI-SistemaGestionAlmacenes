@@ -89,6 +89,8 @@ export interface NotificacionResultado {
   alertas: number;
   lotes_por_vencer: number;
   destinatarios: number;
+  enviados?: string[];
+  fallidos?: { email: string; error: string }[];
 }
 
 /** POST /api/notificaciones/revisar/ — Revisa alertas/lotes y envía email resumen */

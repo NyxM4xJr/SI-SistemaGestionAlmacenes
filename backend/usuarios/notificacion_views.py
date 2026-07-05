@@ -28,9 +28,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
-from django.core.mail import send_mail
 from supabase import create_client
 from bitacora.utils import registrar_accion, obtener_ip_cliente
+from nucleo.resend_utils import enviar_email
 
 logger = logging.getLogger(__name__)
 
@@ -117,14 +117,8 @@ class RevisarNotificarView(APIView):
             asunto = f"[Inventario] {len(alertas)} alerta(s) y {len(lotes)} lote(s) por vencer"
             cuerpo = self._construir_cuerpo(alertas, lotes, dias, hoy)
 
-            # 5) Enviar
-            enviados = send_mail(
-                subject=asunto,
-                message=cuerpo,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=destinatarios,
-                fail_silently=False,
-            )
+            # 5) Enviar (vía API HTTP de Resend, no SMTP)
+            resultado_envio = enviar_email(destinatarios, asunto, cuerpo)
 
             # 6) Bitácora
             ip_cliente = obtener_ip_cliente(request)
@@ -136,16 +130,19 @@ class RevisarNotificarView(APIView):
                     'ip': ip_cliente,
                     'alertas': len(alertas),
                     'lotes_por_vencer': len(lotes),
-                    'destinatarios': len(destinatarios),
+                    'enviados': resultado_envio['enviados'],
+                    'fallidos': resultado_envio['fallidos'],
                 }
             )
 
             return Response(
                 {
-                    'enviado': enviados > 0,
+                    'enviado': len(resultado_envio['enviados']) > 0,
                     'alertas': len(alertas),
                     'lotes_por_vencer': len(lotes),
                     'destinatarios': len(destinatarios),
+                    'enviados': resultado_envio['enviados'],
+                    'fallidos': resultado_envio['fallidos'],
                 },
                 status=status.HTTP_200_OK
             )

@@ -33,8 +33,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from supabase import create_client
 from django.conf import settings
-from django.core.mail import send_mail
 from bitacora.utils import registrar_accion, obtener_ip_cliente
+from nucleo.resend_utils import enviar_email
 
 logger = logging.getLogger(__name__)
 
@@ -262,23 +262,25 @@ class GenerarOrdenesAutomaticasView(APIView):
                 supabase.table('detalle_orden_compra').insert(detalle_rows).execute()
 
                 # Notificar al proveedor por email (si tiene email configurado)
+                # Vía API HTTP de Resend, no SMTP (Railway bloquea SMTP saliente).
                 email_proveedor = (grupo['proveedor'] or {}).get('email')
                 email_enviado = False
                 if email_proveedor:
-                    try:
-                        send_mail(
-                            subject=f"Orden de compra #{orden['id']}",
-                            message=self._cuerpo_email(orden['id'], grupo['proveedor'], items, total),
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[email_proveedor],
-                            fail_silently=False,
-                        )
-                        email_enviado = True
+                    resultado_envio = enviar_email(
+                        [email_proveedor],
+                        f"Orden de compra #{orden['id']}",
+                        self._cuerpo_email(orden['id'], grupo['proveedor'], items, total),
+                    )
+                    email_enviado = email_proveedor in resultado_envio['enviados']
+                    if email_enviado:
                         supabase.table('orden_compra').update(
                             {'estado': 'enviada'}
                         ).eq('id', orden['id']).execute()
-                    except Exception as mail_err:
-                        logger.error(f"Error enviando email orden {orden['id']}: {str(mail_err)}")
+                    else:
+                        logger.error(
+                            f"No se pudo notificar orden {orden['id']}: "
+                            f"{resultado_envio['fallidos']}"
+                        )
 
                 ordenes_creadas.append({
                     'orden_id': orden['id'],
