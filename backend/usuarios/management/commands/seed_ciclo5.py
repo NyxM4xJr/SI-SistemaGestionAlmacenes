@@ -24,7 +24,7 @@
 #   quedan guardados en la base: se corre UNA sola vez, no en cada deploy.
 # ============================================================
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -65,15 +65,22 @@ class Command(BaseCommand):
             help="Elimina los datos de demo sembrados y termina.",
         )
 
-    def _insert_id(self, tabla, payload):
+    def _insert(self, tabla, payload):
         """
-        Inserta en una tabla cuyo 'id' NO se autogenera en esta instancia
-        de Supabase (proveedor_insumo, lote, detalle_lote, alertas_stock).
-        Calcula el próximo id como max(id)+1.
+        Inserta intentando primero SIN 'id' (para respetar la secuencia/
+        default de la tabla y no romper triggers que dependen de ella).
+        Solo si la tabla exige 'id' (not-null sin default), lo calcula a
+        mano como max(id)+1.
         """
-        r = self.sb.table(tabla).select("id").order("id", desc=True).limit(1).execute()
-        siguiente = (r.data[0]["id"] + 1) if r.data else 1
-        return self.sb.table(tabla).insert({**payload, "id": siguiente}).execute()
+        try:
+            return self.sb.table(tabla).insert(payload).execute()
+        except Exception as e:
+            msg = str(e)
+            if '23502' in msg or 'null value in column "id"' in msg:
+                r = self.sb.table(tabla).select("id").order("id", desc=True).limit(1).execute()
+                siguiente = (r.data[0]["id"] + 1) if r.data else 1
+                return self.sb.table(tabla).insert({**payload, "id": siguiente}).execute()
+            raise
 
     def handle(self, *args, **options):
         self.sb = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
@@ -89,7 +96,8 @@ class Command(BaseCommand):
         proveedores = self._seed_proveedores()
         self._seed_proveedor_insumo(insumos, proveedores)
         self._seed_lotes(insumos, stocks, proveedores)
-        self._seed_alertas(stocks)
+        # Las alertas las generan los triggers de la BD al insertar los lotes
+        # (trg_verificar_proximos_vencer). No se insertan manualmente.
 
         self.stdout.write(self.style.SUCCESS("\n✓ Seeder completado."))
         self.stdout.write(
@@ -179,7 +187,7 @@ class Command(BaseCommand):
                 )
                 if existe.data:
                     continue
-                self._insert_id("proveedor_insumo", {
+                self._insert("proveedor_insumo", {
                     "proveedor_id": prov_id, "insumo_id": insumo_id,
                     "precio": precio, "calificacion": "Buena",
                     "nota": "Precio de demostración",
@@ -206,7 +214,7 @@ class Command(BaseCommand):
             ("Leche Entera",  3),    # por vencer (dentro de 7 días)
             ("Harina 0000",   60),   # ok
         ]
-        lote = self._insert_id("lote", {
+        lote = self._insert("lote", {
             "fecha_ing": hoy.isoformat(),
             "proveedor_id": prov_barato,
             "total_lote": 100.0,
@@ -215,7 +223,7 @@ class Command(BaseCommand):
 
         for nombre, dias in detalles:
             fv = (hoy + timedelta(days=dias)).isoformat()
-            self._insert_id("detalle_lote", {
+            self._insert("detalle_lote", {
                 "lote_id": lote_id,
                 "insumo_id": insumos[nombre],
                 "stock_id": stocks[nombre],
@@ -226,30 +234,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(
                 f"  + detalle_lote: {nombre} vence {fv}"
             ))
-
-    # ── Alertas pendientes (CU33) ────────────────────────────
-    def _seed_alertas(self, stocks):
-        stock_tomate = stocks["Tomate Perita"]
-        stock_leche = stocks["Leche Entera"]
-        # idempotencia: si ya hay alertas para estos stocks, no repetir
-        ya = (
-            self.sb.table("alertas_stock").select("id")
-            .in_("stock_id", [stock_tomate, stock_leche]).execute()
-        )
-        if ya.data:
-            self.stdout.write("  alertas de demo ya existen (skip)")
-            return
-        ahora = datetime.now().isoformat()
-        alertas = [
-            (stock_tomate, "Stock bajo: Tomate Perita (2 de mínimo 10)"),
-            (stock_leche,  "Lote de Leche Entera próximo a vencer"),
-        ]
-        for stock_id, mensaje in alertas:
-            self._insert_id("alertas_stock", {
-                "stock_id": stock_id, "fecha": ahora,
-                "mensaje": mensaje, "leida": False,
-            })
-            self.stdout.write(self.style.SUCCESS(f"  + alerta: {mensaje}"))
 
     # ── Limpieza ─────────────────────────────────────────────
     def _limpiar(self):
