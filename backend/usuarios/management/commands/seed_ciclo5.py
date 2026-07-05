@@ -6,11 +6,12 @@
 # DESCRIPCIÓN:
 #   Seeder de datos de DEMO para probar los CUs del Ciclo 5.
 #   Es IDEMPOTENTE: se puede correr varias veces sin duplicar
-#   (detecta lo ya sembrado por el prefijo "[SEED]").
+#   (reutiliza las filas existentes por nombre).
 #
-#   Puebla lo necesario para demostrar:
+#   Arma una situación de negocio coherente:
 #     - CU37 Órdenes de compra: insumos con stock <= stock_min +
-#       2 proveedores (con email) y precios distintos por insumo.
+#       2 proveedores (con email) y precios distintos por insumo,
+#       para que el sistema elija el más barato y notifique.
 #     - CU34 Caducidad (FEFO): lotes con detalle vencido / por
 #       vencer / ok.
 #     - CU33 Notificaciones: alertas_stock pendientes (leida=False).
@@ -19,8 +20,8 @@
 #     python manage.py seed_ciclo5
 #     python manage.py seed_ciclo5 --limpiar   (borra lo sembrado y sale)
 #
-#   Escribe en la MISMA Supabase que apunte el .env (cloud), así que
-#   corriéndolo local con las credenciales de producción, puebla prod.
+#   Escribe en la MISMA Supabase que apunte el .env (cloud). Los datos
+#   quedan guardados en la base: se corre UNA sola vez, no en cada deploy.
 # ============================================================
 
 from datetime import date, datetime, timedelta
@@ -29,28 +30,29 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from supabase import create_client
 
-PREFIJO = "[SEED]"
-
 # Insumos de demo: (nombre, categoria, vencimiento_dias)
 INSUMOS_SEED = [
-    (f"{PREFIJO} Tomate", "Verdura", 5),
-    (f"{PREFIJO} Leche",  "Lácteo",  3),
-    (f"{PREFIJO} Harina", "Harinas", 90),
+    ("Tomate Perita", "Verdura", 5),
+    ("Leche Entera",  "Lácteo",  3),
+    ("Harina 0000",   "Harinas", 90),
 ]
 
 # Stock por insumo: (nombre_insumo, cantidad, stock_min, stock_max)
 # Tomate y Leche quedan EN/BAJO el mínimo -> disparan CU37.
 STOCK_SEED = {
-    f"{PREFIJO} Tomate": (2, 10, 50),
-    f"{PREFIJO} Leche":  (5, 8, 40),
-    f"{PREFIJO} Harina": (100, 20, 200),
+    "Tomate Perita": (2, 10, 50),
+    "Leche Entera":  (5, 8, 40),
+    "Harina 0000":   (100, 20, 200),
 }
 
 # Proveedores de demo (ambos con email para CU37 -> notificación)
 PROVEEDORES_SEED = [
-    (f"{PREFIJO} Proveedor Barato", "proveedor.barato@demo.com"),
-    (f"{PREFIJO} Proveedor Caro",   "proveedor.caro@demo.com"),
+    ("Distribuidora Andina", "distribuidora.andina@demo.com"),
+    ("Mercado Central",      "mercado.central@demo.com"),
 ]
+
+NOMBRES_INSUMOS = [n for n, _, _ in INSUMOS_SEED]
+NOMBRES_PROVEEDORES = [n for n, _ in PROVEEDORES_SEED]
 
 
 class Command(BaseCommand):
@@ -60,7 +62,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--limpiar",
             action="store_true",
-            help="Elimina los datos sembrados ([SEED]) y termina.",
+            help="Elimina los datos de demo sembrados y termina.",
         )
 
     def handle(self, *args, **options):
@@ -116,7 +118,6 @@ class Command(BaseCommand):
             existe = self.sb.table("stock").select("id").eq("insumo_id", insumo_id).execute()
             if existe.data:
                 stock_id = existe.data[0]["id"]
-                # aseguramos los valores de demo (por si cambiaron)
                 self.sb.table("stock").update(
                     {"cantidad": cant, "stock_min": smin, "stock_max": smax}
                 ).eq("id", stock_id).execute()
@@ -151,12 +152,12 @@ class Command(BaseCommand):
 
     # ── proveedor_insumo (precios distintos → CU37 elige el más barato) ──
     def _seed_proveedor_insumo(self, insumos, proveedores):
-        barato = proveedores[f"{PREFIJO} Proveedor Barato"]
-        caro = proveedores[f"{PREFIJO} Proveedor Caro"]
+        barato = proveedores["Distribuidora Andina"]
+        caro = proveedores["Mercado Central"]
         # (insumo, precio_barato, precio_caro)
         precios = [
-            (f"{PREFIJO} Tomate", 5.0, 8.0),
-            (f"{PREFIJO} Leche", 6.0, 9.5),
+            ("Tomate Perita", 5.0, 8.0),
+            ("Leche Entera", 6.0, 9.5),
         ]
         for nombre, p_barato, p_caro in precios:
             insumo_id = insumos[nombre]
@@ -171,7 +172,7 @@ class Command(BaseCommand):
                 self.sb.table("proveedor_insumo").insert({
                     "proveedor_id": prov_id, "insumo_id": insumo_id,
                     "precio": precio, "calificacion": "Buena",
-                    "nota": f"{PREFIJO} demo",
+                    "nota": "Precio de demostración",
                 }).execute()
                 self.stdout.write(self.style.SUCCESS(
                     f"  + proveedor_insumo: {nombre} @ {precio} Bs (prov {prov_id})"
@@ -187,12 +188,12 @@ class Command(BaseCommand):
             return
 
         hoy = date.today()
-        prov_barato = proveedores[f"{PREFIJO} Proveedor Barato"]
+        prov_barato = proveedores["Distribuidora Andina"]
         # (insumo, dias_hasta_vencer)  -> vencido / por vencer / ok
         detalles = [
-            (f"{PREFIJO} Tomate", -2),   # vencido
-            (f"{PREFIJO} Leche",  3),    # por vencer (dentro de 7 días)
-            (f"{PREFIJO} Harina", 60),   # ok
+            ("Tomate Perita", -2),   # vencido
+            ("Leche Entera",  3),    # por vencer (dentro de 7 días)
+            ("Harina 0000",   60),   # ok
         ]
         lote = self.sb.table("lote").insert({
             "fecha_ing": hoy.isoformat(),
@@ -217,14 +218,20 @@ class Command(BaseCommand):
 
     # ── Alertas pendientes (CU33) ────────────────────────────
     def _seed_alertas(self, stocks):
-        ya = self.sb.table("alertas_stock").select("id").like("mensaje", f"{PREFIJO}%").execute()
+        stock_tomate = stocks["Tomate Perita"]
+        stock_leche = stocks["Leche Entera"]
+        # idempotencia: si ya hay alertas para estos stocks, no repetir
+        ya = (
+            self.sb.table("alertas_stock").select("id")
+            .in_("stock_id", [stock_tomate, stock_leche]).execute()
+        )
         if ya.data:
             self.stdout.write("  alertas de demo ya existen (skip)")
             return
         ahora = datetime.now().isoformat()
         alertas = [
-            (stocks[f"{PREFIJO} Tomate"], f"{PREFIJO} Stock bajo de Tomate (2 <= 10)"),
-            (stocks[f"{PREFIJO} Leche"],  f"{PREFIJO} Lote de Leche próximo a vencer"),
+            (stock_tomate, "Stock bajo: Tomate Perita (2 de mínimo 10)"),
+            (stock_leche,  "Lote de Leche Entera próximo a vencer"),
         ]
         for stock_id, mensaje in alertas:
             self.sb.table("alertas_stock").insert({
@@ -235,25 +242,33 @@ class Command(BaseCommand):
 
     # ── Limpieza ─────────────────────────────────────────────
     def _limpiar(self):
-        self.stdout.write(self.style.WARNING("Eliminando datos [SEED]..."))
-        # alertas
-        self.sb.table("alertas_stock").delete().like("mensaje", f"{PREFIJO}%").execute()
-        # detalle_lote + lote de proveedores sembrados
-        provs = self.sb.table("proveedor").select("id").like("nombre", f"{PREFIJO}%").execute()
+        self.stdout.write(self.style.WARNING("Eliminando datos de demo..."))
+        # insumos y proveedores sembrados
+        insumos = self.sb.table("insumo").select("id").in_("nombre", NOMBRES_INSUMOS).execute()
+        insumo_ids = [i["id"] for i in (insumos.data or [])]
+        provs = self.sb.table("proveedor").select("id").in_("nombre", NOMBRES_PROVEEDORES).execute()
         prov_ids = [p["id"] for p in (provs.data or [])]
+
+        # stocks de esos insumos (para borrar sus alertas)
+        stock_ids = []
+        if insumo_ids:
+            stocks = self.sb.table("stock").select("id").in_("insumo_id", insumo_ids).execute()
+            stock_ids = [s["id"] for s in (stocks.data or [])]
+
+        # alertas de esos stocks
+        if stock_ids:
+            self.sb.table("alertas_stock").delete().in_("stock_id", stock_ids).execute()
+        # detalle_lote + lote de los proveedores sembrados
         if prov_ids:
             lotes = self.sb.table("lote").select("id").in_("proveedor_id", prov_ids).execute()
             for l in (lotes.data or []):
                 self.sb.table("detalle_lote").delete().eq("lote_id", l["id"]).execute()
             self.sb.table("lote").delete().in_("proveedor_id", prov_ids).execute()
-        # proveedor_insumo + proveedores
-        insumos = self.sb.table("insumo").select("id").like("nombre", f"{PREFIJO}%").execute()
-        insumo_ids = [i["id"] for i in (insumos.data or [])]
+        # proveedor_insumo + stock + insumos
         if insumo_ids:
             self.sb.table("proveedor_insumo").delete().in_("insumo_id", insumo_ids).execute()
-            # stock + detalle sueltos
             self.sb.table("stock").delete().in_("insumo_id", insumo_ids).execute()
             self.sb.table("insumo").delete().in_("id", insumo_ids).execute()
         if prov_ids:
             self.sb.table("proveedor").delete().in_("id", prov_ids).execute()
-        self.stdout.write(self.style.SUCCESS("✓ Datos [SEED] eliminados."))
+        self.stdout.write(self.style.SUCCESS("✓ Datos de demo eliminados."))
