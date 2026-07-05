@@ -1,6 +1,7 @@
 import json
 import logging
 import stripe
+import requests
 from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
@@ -250,6 +251,19 @@ class CapturarPayPalView(APIView):
                 )
 
             return Response(resultado, status=status.HTTP_200_OK)
+        except requests.exceptions.HTTPError as e:
+            logger.error(f"Error en CapturarPayPalView: {str(e)}")
+            cuerpo = e.response.text if e.response is not None else ''
+            if 'ORDER_NOT_APPROVED' in cuerpo:
+                mensaje = (
+                    'El pago aún no fue aprobado en PayPal. Completá el pago '
+                    '(login + "Pay Now") en la pestaña de PayPal antes de verificar.'
+                )
+            elif 'ORDER_ALREADY_CAPTURED' in cuerpo:
+                mensaje = 'Este pago ya había sido capturado anteriormente.'
+            else:
+                mensaje = 'PayPal rechazó la captura del pago.'
+            return Response({'error': mensaje, 'detalle': cuerpo}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.error(f"Error en CapturarPayPalView: {str(e)}")
             return Response({'error': 'No se pudo capturar el pago de PayPal'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

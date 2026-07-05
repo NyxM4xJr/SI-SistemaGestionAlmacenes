@@ -204,7 +204,11 @@ def capturar_orden_paypal(order_id):
             },
             timeout=20,
         )
-        resp.raise_for_status()
+        if resp.status_code >= 400:
+            # Ej: 422 ORDER_NOT_APPROVED (el comprador no llegó a aprobar
+            # el pago en PayPal) o ORDER_ALREADY_CAPTURED.
+            logger.error(f"PayPal capture rechazado ({resp.status_code}): {resp.text}")
+            resp.raise_for_status()
         data = resp.json()
         estado = data.get('status')
 
