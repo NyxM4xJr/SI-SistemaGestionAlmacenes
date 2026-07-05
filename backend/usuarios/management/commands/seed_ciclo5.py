@@ -261,6 +261,10 @@ class Command(BaseCommand):
             for lid in lote_ids:
                 self.sb.table("detalle_lote").delete().eq("lote_id", lid).execute()
                 self.sb.table("lote").delete().eq("id", lid).execute()
+        # movimientos de inventario que referencian estos insumos (los
+        # generan triggers al tocar stock/lotes; bloquean el delete de insumo)
+        if insumo_ids:
+            self.sb.table("movimiento_inventario").delete().in_("insumo_id", insumo_ids).execute()
         # proveedor_insumo + stock + insumos
         if insumo_ids:
             self.sb.table("proveedor_insumo").delete().in_("insumo_id", insumo_ids).execute()
