@@ -190,9 +190,10 @@ class Command(BaseCommand):
 
     # ── Lotes + detalle (FEFO: vencido / por vencer / ok) ────
     def _seed_lotes(self, insumos, stocks, proveedores):
-        # idempotencia: si ya hay algún lote de los proveedores sembrados, no repetir
-        prov_ids = list(proveedores.values())
-        ya = self.sb.table("lote").select("id").in_("proveedor_id", prov_ids).execute()
+        # idempotencia por INSUMO sembrado (no por proveedor, que puede ser
+        # preexistente y tener lotes reales del usuario).
+        insumo_ids = list(insumos.values())
+        ya = self.sb.table("detalle_lote").select("id").in_("insumo_id", insumo_ids).execute()
         if ya.data:
             self.stdout.write("  lotes de demo ya existen (skip)")
             return
@@ -268,12 +269,14 @@ class Command(BaseCommand):
         # alertas de esos stocks
         if stock_ids:
             self.sb.table("alertas_stock").delete().in_("stock_id", stock_ids).execute()
-        # detalle_lote + lote de los proveedores sembrados
-        if prov_ids:
-            lotes = self.sb.table("lote").select("id").in_("proveedor_id", prov_ids).execute()
-            for l in (lotes.data or []):
-                self.sb.table("detalle_lote").delete().eq("lote_id", l["id"]).execute()
-            self.sb.table("lote").delete().in_("proveedor_id", prov_ids).execute()
+        # detalle_lote + lote que CONTIENEN insumos sembrados (identifica el
+        # lote de demo por su contenido, sin tocar otros lotes del proveedor)
+        if insumo_ids:
+            detalles = self.sb.table("detalle_lote").select("id, lote_id").in_("insumo_id", insumo_ids).execute()
+            lote_ids = list({d["lote_id"] for d in (detalles.data or [])})
+            for lid in lote_ids:
+                self.sb.table("detalle_lote").delete().eq("lote_id", lid).execute()
+                self.sb.table("lote").delete().eq("id", lid).execute()
         # proveedor_insumo + stock + insumos
         if insumo_ids:
             self.sb.table("proveedor_insumo").delete().in_("insumo_id", insumo_ids).execute()
