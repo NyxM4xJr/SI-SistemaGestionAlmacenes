@@ -85,3 +85,21 @@ export async function capturarPayPal(
   if (!res.ok) throw new Error(data.error || "Error al capturar el pago de PayPal.");
   return data;
 }
+
+export interface EstadoOrdenPayPal {
+  order_id: string;
+  status: string; // CREATED | APPROVED | COMPLETED | VOIDED, etc.
+  intent?: string;
+  purchase_units?: unknown;
+  payer?: unknown;
+}
+
+/** GET /api/pagos/paypal/estado/:orderId/ — Consulta el estado real (sin capturar) */
+export async function obtenerEstadoPayPal(orderId: string): Promise<EstadoOrdenPayPal> {
+  const res = await fetch(`${API_URL}/pagos/paypal/estado/${orderId}/`, {
+    headers: headers(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Error al consultar el estado del pago.");
+  return data;
+}

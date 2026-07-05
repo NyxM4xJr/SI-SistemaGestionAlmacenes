@@ -175,6 +175,23 @@ def crear_orden_paypal(usuario_id, monto, descripcion, return_url, cancel_url):
         raise e
 
 
+def obtener_estado_orden_paypal(order_id):
+    """
+    Consulta (SOLO LECTURA, sin capturar) el estado real de una orden en
+    PayPal. Útil para diagnosticar por qué una captura falla: dice si la
+    orden quedó en CREATED (nunca se aprobó), APPROVED (lista para
+    capturar) o COMPLETED (ya capturada).
+    """
+    token = _obtener_token_paypal()
+    resp = requests.get(
+        f"{_paypal_base_url()}/v2/checkout/orders/{order_id}",
+        headers={'Authorization': f'Bearer {token}'},
+        timeout=15,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
 def capturar_orden_paypal(order_id):
     """
     Captura una orden de PayPal aprobada y, si queda COMPLETED,

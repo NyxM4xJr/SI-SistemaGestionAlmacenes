@@ -14,6 +14,7 @@ from .pago_services import (
     crear_orden_paypal,
     capturar_orden_paypal,
     verificar_webhook_paypal,
+    obtener_estado_orden_paypal,
 )
 from bitacora.utils import registrar_accion, obtener_ip_cliente
 
@@ -267,6 +268,36 @@ class CapturarPayPalView(APIView):
         except Exception as e:
             logger.error(f"Error en CapturarPayPalView: {str(e)}")
             return Response({'error': 'No se pudo capturar el pago de PayPal'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class EstadoOrdenPayPalView(APIView):
+    """
+    GET /api/pagos/paypal/estado/<order_id>/
+
+    Consulta de SOLO LECTURA (no captura nada) del estado real que
+    PayPal tiene de una orden: CREATED (nunca se aprobó), APPROVED
+    (lista para capturar) o COMPLETED (ya capturada). Sirve para
+    diagnosticar por qué falla una captura, sin efectos secundarios.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, order_id):
+        try:
+            data = obtener_estado_orden_paypal(order_id)
+            return Response({
+                'order_id': order_id,
+                'status': data.get('status'),
+                'intent': data.get('intent'),
+                'purchase_units': data.get('purchase_units'),
+                'payer': data.get('payer'),
+            }, status=status.HTTP_200_OK)
+        except requests.exceptions.HTTPError as e:
+            cuerpo = e.response.text if e.response is not None else str(e)
+            logger.error(f"Error consultando estado de orden PayPal {order_id}: {cuerpo}")
+            return Response({'error': 'No se pudo consultar la orden.', 'detalle': cuerpo}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Error en EstadoOrdenPayPalView: {str(e)}")
+            return Response({'error': 'No se pudo consultar la orden.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class PayPalWebhookView(APIView):

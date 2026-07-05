@@ -57,6 +57,7 @@ from .pago_views import (  # CU31
     CrearOrdenPayPalView,   # CU36 (Ciclo 5)
     CapturarPayPalView,     # CU36 (Ciclo 5)
     PayPalWebhookView,      # CU36 (Ciclo 5)
+    EstadoOrdenPayPalView,  # CU36 (Ciclo 5) - diagnóstico de solo lectura
 )
 from .notificacion_views import RevisarNotificarView  # CU33 (Ciclo 5)
 
@@ -223,6 +224,7 @@ urlpatterns = [
     path('pagos/paypal/crear-orden/', CrearOrdenPayPalView.as_view(), name='paypal-crear-orden'),
     path('pagos/paypal/capturar/', CapturarPayPalView.as_view(), name='paypal-capturar'),
     path('pagos/paypal/webhook/', PayPalWebhookView.as_view(), name='paypal-webhook'),
+    path('pagos/paypal/estado/<str:order_id>/', EstadoOrdenPayPalView.as_view(), name='paypal-estado'),
 
     # ============================================
     #             ---- CICLO #5 ----
