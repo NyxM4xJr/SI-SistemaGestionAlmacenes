@@ -65,6 +65,16 @@ class Command(BaseCommand):
             help="Elimina los datos de demo sembrados y termina.",
         )
 
+    def _insert_id(self, tabla, payload):
+        """
+        Inserta en una tabla cuyo 'id' NO se autogenera en esta instancia
+        de Supabase (proveedor_insumo, lote, detalle_lote, alertas_stock).
+        Calcula el próximo id como max(id)+1.
+        """
+        r = self.sb.table(tabla).select("id").order("id", desc=True).limit(1).execute()
+        siguiente = (r.data[0]["id"] + 1) if r.data else 1
+        return self.sb.table(tabla).insert({**payload, "id": siguiente}).execute()
+
     def handle(self, *args, **options):
         self.sb = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
@@ -169,11 +179,11 @@ class Command(BaseCommand):
                 )
                 if existe.data:
                     continue
-                self.sb.table("proveedor_insumo").insert({
+                self._insert_id("proveedor_insumo", {
                     "proveedor_id": prov_id, "insumo_id": insumo_id,
                     "precio": precio, "calificacion": "Buena",
                     "nota": "Precio de demostración",
-                }).execute()
+                })
                 self.stdout.write(self.style.SUCCESS(
                     f"  + proveedor_insumo: {nombre} @ {precio} Bs (prov {prov_id})"
                 ))
@@ -195,23 +205,23 @@ class Command(BaseCommand):
             ("Leche Entera",  3),    # por vencer (dentro de 7 días)
             ("Harina 0000",   60),   # ok
         ]
-        lote = self.sb.table("lote").insert({
+        lote = self._insert_id("lote", {
             "fecha_ing": hoy.isoformat(),
             "proveedor_id": prov_barato,
             "total_lote": 100.0,
-        }).execute()
+        })
         lote_id = lote.data[0]["id"]
 
         for nombre, dias in detalles:
             fv = (hoy + timedelta(days=dias)).isoformat()
-            self.sb.table("detalle_lote").insert({
+            self._insert_id("detalle_lote", {
                 "lote_id": lote_id,
                 "insumo_id": insumos[nombre],
                 "stock_id": stocks[nombre],
                 "cantidad": 10,
                 "costo_unitario": 4.5,
                 "fecha_vencimiento": fv,
-            }).execute()
+            })
             self.stdout.write(self.style.SUCCESS(
                 f"  + detalle_lote: {nombre} vence {fv}"
             ))
@@ -234,10 +244,10 @@ class Command(BaseCommand):
             (stock_leche,  "Lote de Leche Entera próximo a vencer"),
         ]
         for stock_id, mensaje in alertas:
-            self.sb.table("alertas_stock").insert({
+            self._insert_id("alertas_stock", {
                 "stock_id": stock_id, "fecha": ahora,
                 "mensaje": mensaje, "leida": False,
-            }).execute()
+            })
             self.stdout.write(self.style.SUCCESS(f"  + alerta: {mensaje}"))
 
     # ── Limpieza ─────────────────────────────────────────────
