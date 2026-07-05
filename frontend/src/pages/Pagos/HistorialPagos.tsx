@@ -1,15 +1,26 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { RefreshCw, Search } from "lucide-react";
+import { RefreshCw, Search, CheckCircle2, XCircle } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
-import { getHistorialPagos, capturarPayPal, obtenerEstadoPayPal, Pago } from "@/services/pagoService";
+import { useAuth } from "@/context/AuthContext";
+import {
+  getHistorialPagos,
+  capturarPayPal,
+  obtenerEstadoPayPal,
+  aprobarPagoManual,
+  rechazarPagoManual,
+  Pago,
+} from "@/services/pagoService";
 
 export default function HistorialPagos() {
+  const { user } = useAuth();
+  const esAdmin = user?.rol === "administrador";
   const [searchParams, setSearchParams] = useSearchParams();
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [verificandoId, setVerificandoId] = useState<number | null>(null);
+  const [aprobandoId, setAprobandoId] = useState<number | null>(null);
 
   useEffect(() => {
     cargarPagos();
@@ -79,6 +90,38 @@ export default function HistorialPagos() {
       console.log("Estado completo de la orden PayPal:", res);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "No se pudo consultar el estado.");
+    }
+  }
+
+  // Aprobación manual (solo admin): fallback cuando PayPal sandbox no
+  // confirma el pago solo. Intenta capturar en PayPal primero.
+  async function handleAprobar(pago: Pago) {
+    try {
+      setAprobandoId(pago.id);
+      const res = await aprobarPagoManual(pago.id);
+      if (res.confirmado_por_paypal) {
+        toast.success("Pago confirmado por PayPal y aprobado.");
+      } else {
+        toast.success("Pago aprobado manualmente (no confirmado por PayPal).");
+      }
+      await cargarPagos();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "No se pudo aprobar el pago.");
+    } finally {
+      setAprobandoId(null);
+    }
+  }
+
+  async function handleRechazar(pago: Pago) {
+    try {
+      setAprobandoId(pago.id);
+      await rechazarPagoManual(pago.id);
+      toast.info("Pago rechazado.");
+      await cargarPagos();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "No se pudo rechazar el pago.");
+    } finally {
+      setAprobandoId(null);
     }
   }
 
@@ -187,6 +230,27 @@ export default function HistorialPagos() {
                         >
                           <Search className="h-3.5 w-3.5" />
                           Ver estado
+                        </button>
+                      </div>
+                    )}
+                    {pago.estado === "pendiente" && esAdmin && (
+                      <div className="flex items-center justify-center gap-2 mt-2">
+                        <button
+                          onClick={() => handleAprobar(pago)}
+                          disabled={aprobandoId === pago.id}
+                          title="Aprobación manual (fallback si PayPal sandbox no confirma)"
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 transition disabled:opacity-50"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Aprobar
+                        </button>
+                        <button
+                          onClick={() => handleRechazar(pago)}
+                          disabled={aprobandoId === pago.id}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 transition disabled:opacity-50"
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+                          Rechazar
                         </button>
                       </div>
                     )}

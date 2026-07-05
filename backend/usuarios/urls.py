@@ -58,6 +58,8 @@ from .pago_views import (  # CU31
     CapturarPayPalView,     # CU36 (Ciclo 5)
     PayPalWebhookView,      # CU36 (Ciclo 5)
     EstadoOrdenPayPalView,  # CU36 (Ciclo 5) - diagnóstico de solo lectura
+    AprobarPagoManualView,  # CU36 (Ciclo 5) - aprobación manual fallback
+    RechazarPagoManualView, # CU36 (Ciclo 5)
 )
 from .notificacion_views import RevisarNotificarView  # CU33 (Ciclo 5)
 
@@ -225,6 +227,8 @@ urlpatterns = [
     path('pagos/paypal/capturar/', CapturarPayPalView.as_view(), name='paypal-capturar'),
     path('pagos/paypal/webhook/', PayPalWebhookView.as_view(), name='paypal-webhook'),
     path('pagos/paypal/estado/<str:order_id>/', EstadoOrdenPayPalView.as_view(), name='paypal-estado'),
+    path('pagos/<int:pago_id>/aprobar/', AprobarPagoManualView.as_view(), name='pago-aprobar-manual'),
+    path('pagos/<int:pago_id>/rechazar/', RechazarPagoManualView.as_view(), name='pago-rechazar-manual'),
 
     # ============================================
     #             ---- CICLO #5 ----

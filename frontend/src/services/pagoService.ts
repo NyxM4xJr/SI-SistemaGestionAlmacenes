@@ -103,3 +103,34 @@ export async function obtenerEstadoPayPal(orderId: string): Promise<EstadoOrdenP
   if (!res.ok) throw new Error(data.error || "Error al consultar el estado del pago.");
   return data;
 }
+
+/**
+ * PATCH /api/pagos/:id/aprobar/ — Aprobación manual (solo administrador).
+ * Fallback cuando la confirmación automática de PayPal no es confiable:
+ * intenta capturar en PayPal primero; si falla, permite confirmar
+ * manualmente según evidencia externa (comprobante).
+ */
+export async function aprobarPagoManual(
+  pagoId: number
+): Promise<{ id: number; estado: string; confirmado_por_paypal: boolean }> {
+  const res = await fetch(`${API_URL}/pagos/${pagoId}/aprobar/`, {
+    method: "PATCH",
+    headers: headers(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Error al aprobar el pago.");
+  return data;
+}
+
+/** PATCH /api/pagos/:id/rechazar/ — Marca un depósito pendiente como rechazado */
+export async function rechazarPagoManual(
+  pagoId: number
+): Promise<{ id: number; estado: string }> {
+  const res = await fetch(`${API_URL}/pagos/${pagoId}/rechazar/`, {
+    method: "PATCH",
+    headers: headers(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Error al rechazar el pago.");
+  return data;
+}

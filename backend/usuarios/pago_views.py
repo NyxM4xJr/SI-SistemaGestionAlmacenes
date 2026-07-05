@@ -2,6 +2,7 @@ import json
 import logging
 import stripe
 import requests
+from datetime import datetime
 from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
@@ -354,3 +355,110 @@ class PayPalWebhookView(APIView):
                     logger.error(f"Error capturando orden PayPal desde webhook: {str(e)}")
 
         return Response(status=status.HTTP_200_OK)
+
+
+class AprobarPagoManualView(APIView):
+    """
+    PATCH /api/pagos/<int:pago_id>/aprobar/
+
+    Aprobación MANUAL de un depósito pendiente. Fallback para cuando la
+    confirmación automática (webhook o retorno del navegador) no es
+    confiable — en este proyecto, el sandbox de PayPal quedó
+    reiteradamente sin marcar la orden como aprobada pese a completar
+    el flujo de pago del lado del comprador.
+
+    Primero intenta capturar en PayPal (por si esta vez sí está
+    aprobada). Si PayPal la rechaza, permite al administrador confirmar
+    el depósito basándose en evidencia externa (comprobante, captura de
+    pantalla del pago). Queda registrado en bitácora si la confirmación
+    fue de PayPal o manual, para que quede trazable.
+
+    Solo administrador.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pago_id):
+        if request.user.rol != 'administrador':
+            return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            supabase = get_supabase_client()
+            pago_res = supabase.table('pagos_sistema').select('*').eq('id', pago_id).execute()
+            if not pago_res.data:
+                return Response({'error': 'Pago no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            pago = pago_res.data[0]
+
+            if pago.get('estado') == 'completado':
+                return Response(
+                    {'error': 'Este pago ya está completado.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            confirmado_por_paypal = False
+            if pago.get('paypal_order_id'):
+                try:
+                    resultado = capturar_orden_paypal(pago['paypal_order_id'])
+                    confirmado_por_paypal = resultado.get('status') == 'COMPLETED'
+                except Exception as e:
+                    logger.warning(f"Captura automática falló, se procede manual: {str(e)}")
+
+            if not confirmado_por_paypal:
+                # Aprobación manual: el admin confirma según evidencia externa
+                supabase.table('pagos_sistema').update({
+                    'estado': 'completado',
+                    'fecha_completado': datetime.now().isoformat(),
+                }).eq('id', pago_id).execute()
+
+            ip_cliente = obtener_ip_cliente(request)
+            registrar_accion(
+                usuario_id=str(request.user.id),
+                usuario_email=request.user.email,
+                accion="APROBAR_PAGO_MANUAL",
+                detalles={
+                    "ip": ip_cliente,
+                    "pago_id": pago_id,
+                    "confirmado_por_paypal": confirmado_por_paypal,
+                }
+            )
+            return Response(
+                {
+                    'id': pago_id,
+                    'estado': 'completado',
+                    'confirmado_por_paypal': confirmado_por_paypal,
+                },
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            logger.error(f"Error en AprobarPagoManualView: {str(e)}")
+            return Response({'error': 'No se pudo aprobar el pago.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RechazarPagoManualView(APIView):
+    """
+    PATCH /api/pagos/<int:pago_id>/rechazar/
+    Marca un depósito pendiente como 'rechazado'. Solo administrador.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pago_id):
+        if request.user.rol != 'administrador':
+            return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            supabase = get_supabase_client()
+            check = supabase.table('pagos_sistema').select('id').eq('id', pago_id).execute()
+            if not check.data:
+                return Response({'error': 'Pago no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+            supabase.table('pagos_sistema').update({'estado': 'rechazado'}).eq('id', pago_id).execute()
+
+            ip_cliente = obtener_ip_cliente(request)
+            registrar_accion(
+                usuario_id=str(request.user.id),
+                usuario_email=request.user.email,
+                accion="RECHAZAR_PAGO_MANUAL",
+                detalles={"ip": ip_cliente, "pago_id": pago_id}
+            )
+            return Response({'id': pago_id, 'estado': 'rechazado'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error en RechazarPagoManualView: {str(e)}")
+            return Response({'error': 'No se pudo rechazar el pago.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
