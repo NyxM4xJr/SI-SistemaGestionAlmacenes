@@ -25,9 +25,12 @@ logger = logging.getLogger(__name__)
 RESEND_API_URL = "https://api.resend.com/emails"
 
 
-def enviar_email(destinatarios, asunto, cuerpo_texto):
+def enviar_email(destinatarios, asunto, cuerpo_texto, cuerpo_html=None):
     """
-    Envía 'cuerpo_texto' a cada destinatario por separado vía Resend.
+    Envía 'cuerpo_texto' (y opcionalmente 'cuerpo_html') a cada
+    destinatario por separado vía Resend. Si se pasa cuerpo_html, los
+    clientes de correo que soportan HTML muestran ese diseño; el texto
+    plano queda como respaldo para los que no.
 
     Returns:
         dict: {
@@ -52,18 +55,22 @@ def enviar_email(destinatarios, asunto, cuerpo_texto):
 
     for destinatario in destinatarios:
         try:
+            payload = {
+                "from": remitente,
+                "to": [destinatario],
+                "subject": asunto,
+                "text": cuerpo_texto,
+            }
+            if cuerpo_html:
+                payload["html"] = cuerpo_html
+
             resp = requests.post(
                 RESEND_API_URL,
                 headers={
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
                 },
-                json={
-                    "from": remitente,
-                    "to": [destinatario],
-                    "subject": asunto,
-                    "text": cuerpo_texto,
-                },
+                json=payload,
                 timeout=15,
             )
             if resp.status_code in (200, 201):

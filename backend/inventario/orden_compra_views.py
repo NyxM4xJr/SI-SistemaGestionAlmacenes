@@ -270,6 +270,7 @@ class GenerarOrdenesAutomaticasView(APIView):
                         [email_proveedor],
                         f"Orden de compra #{orden['id']}",
                         self._cuerpo_email(orden['id'], grupo['proveedor'], items, total),
+                        self._cuerpo_email_html(orden['id'], grupo['proveedor'], items, total),
                     )
                     email_enviado = email_proveedor in resultado_envio['enviados']
                     if email_enviado:
@@ -324,11 +325,9 @@ class GenerarOrdenesAutomaticasView(APIView):
             "",
             f"Reciban un cordial saludo. El sistema ha generado automáticamente una "
             f"solicitud de reabastecimiento (orden de compra N.º {orden_id}, "
-            f"con fecha {fecha}), correspondiente a insumos cuyo stock se encuentra "
-            f"por debajo del nivel mínimo establecido.",
+            f"con fecha {fecha}).",
             "",
             "Detalle de la orden:",
-            "",
         ]
         for i in items:
             lineas.append(
@@ -344,13 +343,93 @@ class GenerarOrdenesAutomaticasView(APIView):
             "de los insumos solicitados."
         )
         lineas.append("")
-        lineas.append("Atentamente,")
-        lineas.append("")
-        lineas.append(
-            "Este mensaje fue generado automáticamente por el Sistema de "
-            "Información para la Gestión de Almacenes Gastronómicos."
-        )
+        lineas.append("Atentamente, Gerente Pulso.")
         return "\n".join(lineas)
+
+    def _cuerpo_email_html(self, orden_id, proveedor, items, total):
+        fecha = datetime.now().strftime('%d/%m/%Y')
+        nombre_proveedor = proveedor.get('nombre', '') or 'proveedor'
+
+        filas_items = "".join(
+            f"""
+            <tr>
+              <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#1f2937;">{i['insumo_nombre']}</td>
+              <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#1f2937;text-align:center;">{i['cantidad']}</td>
+              <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#1f2937;text-align:right;">{i['precio_unitario']:.2f} Bs</td>
+              <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#1f2937;text-align:right;">{i['subtotal']:.2f} Bs</td>
+            </tr>"""
+            for i in items
+        )
+
+        return f"""\
+<!DOCTYPE html>
+<html lang="es">
+  <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+            <tr>
+              <td style="background-color:#4f46e5;padding:24px 32px;">
+                <p style="margin:0;color:#ffffff;font-size:12px;letter-spacing:0.05em;text-transform:uppercase;opacity:0.85;">Sistema de Gestión de Inventario</p>
+                <h1 style="margin:4px 0 0;color:#ffffff;font-size:20px;">Orden de compra N.º {orden_id}</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px;">
+                <p style="margin:0 0 16px;color:#1f2937;font-size:15px;line-height:1.6;">Estimados de {nombre_proveedor}:</p>
+                <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6;">
+                  Reciban un cordial saludo. El sistema ha generado automáticamente una solicitud
+                  de reabastecimiento correspondiente a la orden de compra N.º {orden_id},
+                  con fecha {fecha}.
+                </p>
+
+                <h2 style="margin:0 0 12px;color:#111827;font-size:15px;font-weight:600;">Detalle de la orden</h2>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;margin-bottom:16px;">
+                  <thead>
+                    <tr>
+                      <th style="padding:8px 12px;text-align:left;color:#6b7280;font-size:12px;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Insumo</th>
+                      <th style="padding:8px 12px;text-align:center;color:#6b7280;font-size:12px;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Cant.</th>
+                      <th style="padding:8px 12px;text-align:right;color:#6b7280;font-size:12px;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Precio unit.</th>
+                      <th style="padding:8px 12px;text-align:right;color:#6b7280;font-size:12px;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>{filas_items}
+                  </tbody>
+                </table>
+
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                  <tr>
+                    <td style="text-align:right;padding:12px 12px;background-color:#f9fafb;border-radius:8px;">
+                      <span style="color:#6b7280;font-size:13px;">Total de la compra&nbsp;&nbsp;</span>
+                      <span style="color:#111827;font-size:18px;font-weight:700;">{total:.2f} Bs</span>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6;">
+                  Agradecemos de antemano su atención y quedamos a la espera de su confirmación
+                  respecto a la disponibilidad y fecha estimada de entrega de los insumos
+                  solicitados.
+                </p>
+
+                <p style="margin:0;color:#1f2937;font-size:15px;line-height:1.6;">Atentamente,<br/>Gerente Pulso.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px;background-color:#f9fafb;border-top:1px solid #e5e7eb;">
+                <p style="margin:0;color:#9ca3af;font-size:12px;text-align:center;">
+                  Este mensaje fue generado automáticamente por el Sistema de Información
+                  para la Gestión de Almacenes Gastronómicos.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>"""
 
 
 class OrdenCompraDetailView(APIView):
