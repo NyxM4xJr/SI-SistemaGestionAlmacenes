@@ -12,6 +12,7 @@ from .pago_services import (
     get_supabase_client,
     crear_orden_paypal,
     capturar_orden_paypal,
+    verificar_webhook_paypal,
 )
 from bitacora.utils import registrar_accion, obtener_ip_cliente
 
@@ -252,3 +253,59 @@ class CapturarPayPalView(APIView):
         except Exception as e:
             logger.error(f"Error en CapturarPayPalView: {str(e)}")
             return Response({'error': 'No se pudo capturar el pago de PayPal'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PayPalWebhookView(APIView):
+    """
+    POST /api/pagos/paypal/webhook/
+
+    PayPal llama a este endpoint SERVIDOR-A-SERVIDOR cuando el
+    comprador aprueba la orden (evento CHECKOUT.ORDER.APPROVED), sin
+    depender de que el navegador del usuario vuelva a la app — a
+    diferencia del flujo de retorno en HistorialPagos.tsx, que falla
+    si el usuario cierra la pestaña antes de que el JS capture. Mismo
+    patrón que StripeWebhookView (CU31).
+
+    Configurar en developer.paypal.com > tu app > Webhooks:
+      URL: https://<tu-backend>/api/pagos/paypal/webhook/
+      Evento: CHECKOUT.ORDER.APPROVED
+    Y copiar el Webhook ID a la variable de entorno PAYPAL_WEBHOOK_ID.
+    """
+    permission_classes = [AllowAny]  # PayPal llama a este endpoint sin auth
+
+    def post(self, request):
+        body_raw = request.body
+        try:
+            event = json.loads(body_raw)
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if not verificar_webhook_paypal(request.headers, body_raw):
+            logger.error("Firma de webhook de PayPal inválida")
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        event_type = event.get('event_type')
+        if event_type == 'CHECKOUT.ORDER.APPROVED':
+            resource = event.get('resource', {}) or {}
+            order_id = resource.get('id')
+            purchase_units = resource.get('purchase_units') or []
+            usuario_id = purchase_units[0].get('custom_id') if purchase_units else None
+
+            if order_id:
+                try:
+                    resultado = capturar_orden_paypal(order_id)
+                    if resultado.get('status') == 'COMPLETED':
+                        registrar_accion(
+                            usuario_id=usuario_id or 'desconocido',
+                            usuario_email='webhook_paypal@sistema.com',
+                            accion="PAGO_COMPLETADO",
+                            detalles={
+                                "ip": "0.0.0.0",
+                                "order_id": order_id,
+                                "metodo": "paypal",
+                            }
+                        )
+                except Exception as e:
+                    logger.error(f"Error capturando orden PayPal desde webhook: {str(e)}")
+
+        return Response(status=status.HTTP_200_OK)

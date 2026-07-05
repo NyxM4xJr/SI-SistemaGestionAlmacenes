@@ -1,5 +1,6 @@
 import stripe
 import requests
+import json
 from datetime import datetime
 from django.conf import settings
 from supabase import create_client
@@ -126,6 +127,9 @@ def crear_orden_paypal(usuario_id, monto, descripcion, return_url, cancel_url):
                     'value': f"{float(monto):.2f}",
                 },
                 'description': (descripcion or 'Pago al sistema')[:127],
+                # custom_id permite identificar al usuario desde el webhook,
+                # análogo a 'metadata' en la sesión de Stripe.
+                'custom_id': str(usuario_id),
             }],
             'application_context': {
                 'return_url': return_url,
@@ -176,10 +180,20 @@ def capturar_orden_paypal(order_id):
     Captura una orden de PayPal aprobada y, si queda COMPLETED,
     marca el pago como 'completado' en 'pagos_sistema'.
 
+    Idempotente: si el webhook ya capturó esta orden, no vuelve a
+    llamar a PayPal (evita el error ORDER_ALREADY_CAPTURED cuando el
+    webhook y el retorno del navegador se disparan casi al mismo tiempo).
+
     Returns:
         dict: { 'status': str, 'order_id': str }
     """
     try:
+        supabase = get_supabase_client()
+        ya = supabase.table('pagos_sistema').select('estado') \
+            .eq('paypal_order_id', order_id).execute()
+        if ya.data and ya.data[0].get('estado') == 'completado':
+            return {'status': 'COMPLETED', 'order_id': order_id}
+
         token = _obtener_token_paypal()
 
         resp = requests.post(
@@ -205,3 +219,43 @@ def capturar_orden_paypal(order_id):
     except Exception as e:
         logger.error(f"Error al capturar orden de PayPal: {str(e)}")
         raise e
+
+
+def verificar_webhook_paypal(headers, body_raw):
+    """
+    Verifica la firma de un webhook de PayPal contra la 'Verify Webhook
+    Signature API'. Requiere PAYPAL_WEBHOOK_ID configurado (ver
+    developer.paypal.com > tu app > Webhooks).
+
+    Si no hay PAYPAL_WEBHOOK_ID configurado, no verifica y deja pasar
+    el evento (mismo patrón de degradación que StripeWebhookView cuando
+    falta STRIPE_WEBHOOK_SECRET) — solo para no bloquear el desarrollo
+    local; en producción SIEMPRE debe configurarse.
+    """
+    webhook_id = getattr(settings, 'PAYPAL_WEBHOOK_ID', None)
+    if not webhook_id:
+        logger.warning("PAYPAL_WEBHOOK_ID no configurado: webhook sin verificar firma")
+        return True
+
+    try:
+        token = _obtener_token_paypal()
+        payload = {
+            'transmission_id': headers.get('Paypal-Transmission-Id'),
+            'transmission_time': headers.get('Paypal-Transmission-Time'),
+            'cert_url': headers.get('Paypal-Cert-Url'),
+            'auth_algo': headers.get('Paypal-Auth-Algo'),
+            'transmission_sig': headers.get('Paypal-Transmission-Sig'),
+            'webhook_id': webhook_id,
+            'webhook_event': json.loads(body_raw),
+        }
+        resp = requests.post(
+            f"{_paypal_base_url()}/v1/notifications/verify-webhook-signature",
+            json=payload,
+            headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        return resp.json().get('verification_status') == 'SUCCESS'
+    except Exception as e:
+        logger.error(f"Error verificando webhook de PayPal: {str(e)}")
+        return False
