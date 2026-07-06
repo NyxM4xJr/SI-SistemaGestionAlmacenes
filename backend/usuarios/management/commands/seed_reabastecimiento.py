@@ -1,6 +1,6 @@
 # ============================================================
 # ARCHIVO: backend/usuarios/management/commands/seed_reabastecimiento.py
-# CASO DE USO: CU37 - Órdenes de Compra Automáticas
+# CASO DE USO: CU36 - Órdenes de Compra Automáticas
 # CICLO: 5
 #
 # DESCRIPCIÓN:
@@ -29,12 +29,12 @@ STOCK_BAJO = [
 
 
 class Command(BaseCommand):
-    help = "Reinicia el stock de insumos demo por debajo del mínimo, para volver a probar CU37."
+    help = "Reinicia el stock de insumos demo por debajo del mínimo, para volver a probar CU36."
 
     def handle(self, *args, **options):
         sb = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
-        self.stdout.write(self.style.MIGRATE_HEADING("== Seeder de reabastecimiento (CU37) =="))
+        self.stdout.write(self.style.MIGRATE_HEADING("== Seeder de reabastecimiento (CU36) =="))
 
         for nombre, cantidad, smin, smax in STOCK_BAJO:
             insumo = sb.table("insumo").select("id").eq("nombre", nombre).execute()

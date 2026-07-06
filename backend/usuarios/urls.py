@@ -54,16 +54,16 @@ from .pago_views import (  # CU31
     StripeWebhookView,
     HistorialPagosView,
     SaldoPagosView,
-    CrearOrdenPayPalView,   # CU36 (Ciclo 5)
-    CapturarPayPalView,     # CU36 (Ciclo 5)
-    PayPalWebhookView,      # CU36 (Ciclo 5)
-    EstadoOrdenPayPalView,  # CU36 (Ciclo 5) - diagnóstico de solo lectura
-    AprobarPagoManualView,  # CU36 (Ciclo 5) - aprobación manual fallback
-    RechazarPagoManualView, # CU36 (Ciclo 5)
+    CrearOrdenPayPalView,   # CU35 (Ciclo 5)
+    CapturarPayPalView,     # CU35 (Ciclo 5)
+    PayPalWebhookView,      # CU35 (Ciclo 5)
+    EstadoOrdenPayPalView,  # CU35 (Ciclo 5) - diagnóstico de solo lectura
+    AprobarPagoManualView,  # CU35 (Ciclo 5) - aprobación manual fallback
+    RechazarPagoManualView, # CU35 (Ciclo 5)
 )
 from .notificacion_views import RevisarNotificarView  # CU33 (Ciclo 5)
-from .briefing_ia_views import BriefingIAView  # CU38 (Ciclo 5)
-from .receta_ia_views import SugerirRecetaIAView  # CU39 (Ciclo 5)
+from .briefing_ia_views import BriefingIAView  # CU37 (Ciclo 5)
+from .receta_ia_views import SugerirRecetaIAView  # CU38 (Ciclo 5)
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -192,10 +192,10 @@ urlpatterns = [
     # crea un endpoint de escritura propio para esto.
     path('sugerir-menu/', SugerirMenuView.as_view(), name='sugerir-menu'),
 
-    # ---- CU38 BRIEFING EJECUTIVO PROACTIVO CON IA ----
+    # ---- CU37 BRIEFING EJECUTIVO PROACTIVO CON IA ----
     path('briefing-ia/', BriefingIAView.as_view(), name='briefing-ia'),
 
-    # ---- CU39 GENERACIÓN DE RECETAS CON IA ----
+    # ---- CU38 GENERACIÓN DE RECETAS CON IA ----
     path('recetas-ia/generar/', SugerirRecetaIAView.as_view(), name='recetas-ia-generar'),
 
     # ---- CU25 GENERAR REPORTE DE VALOR PERDIDO ----
@@ -230,7 +230,7 @@ urlpatterns = [
     path('pagos/historial/', HistorialPagosView.as_view(), name='pago-historial'),
     path('pagos/saldo/', SaldoPagosView.as_view(), name='pago-saldo'),
 
-    # ---- CU36 PASARELA DE PAGOS (PAYPAL) — Ciclo 5 ----
+    # ---- CU35 PASARELA DE PAGOS (PAYPAL) — Ciclo 5 ----
     path('pagos/paypal/crear-orden/', CrearOrdenPayPalView.as_view(), name='paypal-crear-orden'),
     path('pagos/paypal/capturar/', CapturarPayPalView.as_view(), name='paypal-capturar'),
     path('pagos/paypal/webhook/', PayPalWebhookView.as_view(), name='paypal-webhook'),

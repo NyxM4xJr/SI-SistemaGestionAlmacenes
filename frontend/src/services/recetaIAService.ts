@@ -1,7 +1,7 @@
 /**
  * ============================================================
  * ARCHIVO: frontend/src/services/recetaIAService.ts
- * CASO DE USO: CU39 - Generación de Recetas con IA
+ * CASO DE USO: CU38 - Generación de Recetas con IA
  * CICLO: 5
  *
  * DESCRIPCIÓN: Servicio de comunicación con el endpoint de

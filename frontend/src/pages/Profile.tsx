@@ -53,7 +53,7 @@ export default function Profile() {
   const meta = ROLE_META[user.rol] || ROLE_META.usuario;
   const Icon = meta.icon;
   const isChef = user.rol === "chef";
-  // CU38: el briefing solo aplica a roles con visión de negocio (mismo
+  // CU37: el briefing solo aplica a roles con visión de negocio (mismo
   // criterio de permisos que el backend en BriefingIAView).
   const puedeVerBriefing = user.rol === "administrador" || user.rol === "gerente";
 

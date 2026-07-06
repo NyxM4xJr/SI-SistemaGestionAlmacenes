@@ -1,6 +1,6 @@
 # ============================================================
 # ARCHIVO: backend/usuarios/management/commands/seed_valor_perdido_demo.py
-# CASO DE USO: CU25 (Valor Perdido) / CU29 (Dashboard) - CU38 (Briefing IA)
+# CASO DE USO: CU25 (Valor Perdido) / CU29 (Dashboard) - CU37 (Briefing IA)
 # CICLO: 5
 #
 # DESCRIPCIÓN:

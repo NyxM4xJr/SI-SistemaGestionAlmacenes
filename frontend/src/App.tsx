@@ -108,10 +108,10 @@ import DescargoAutomatico from "./pages/Descargo/DescargoAutomatico";
 // CU34 - Gestión de Caducidad FEFO
 import CaducidadList from "./pages/Caducidad/CaducidadList";
 
-// CU37 - Órdenes de Compra Automáticas
+// CU36 - Órdenes de Compra Automáticas
 import OrdenCompraList from "./pages/OrdenesCompra/OrdenCompraList";
 
-// CU39 - Generación de Recetas con IA
+// CU38 - Generación de Recetas con IA
 import RecetasIA from "./pages/Menus/RecetasIA";
 
 const queryClient = new QueryClient();
@@ -231,7 +231,7 @@ const App = () => (
             {/* CU34 - Gestión de Caducidad FEFO */}
             <Route path="/caducidad" element={<ProtectedRoute roles={["administrador", "chef"]}><CaducidadList /></ProtectedRoute>} />
 
-            {/* CU37 - Órdenes de Compra Automáticas (bajo Proveedores) */}
+            {/* CU36 - Órdenes de Compra Automáticas (bajo Proveedores) */}
             <Route path="/ordenes-compra" element={<ProtectedRoute roles={["administrador", "gerente"]}><OrdenCompraList /></ProtectedRoute>} />
 
 

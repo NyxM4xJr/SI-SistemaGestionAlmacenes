@@ -1,10 +1,10 @@
 # ============================================================
 # ARCHIVO: backend/usuarios/briefing_ia_views.py
-# CASO DE USO: CU38 - Briefing Ejecutivo Proactivo con IA
+# CASO DE USO: CU37 - Briefing Ejecutivo Proactivo con IA
 # CICLO: 5
 #
 # DESCRIPCIÓN:
-#   A diferencia de CU37 (que actúa solo cuando el usuario hace
+#   A diferencia de CU36 (que actúa solo cuando el usuario hace
 #   clic) o CU32 (que solo responde a un comando puntual), este CU
 #   es PROACTIVO: sin que nadie pregunte nada, resume el estado del
 #   negocio HOY (stock bajo, próximos a vencer, valor perdido del
@@ -96,7 +96,7 @@ def _lotes_por_vencer(supabase):
 
 
 def _ordenes_automaticas_recientes(supabase):
-    """Órdenes de compra generadas automáticamente en los últimos 7 días (CU37)."""
+    """Órdenes de compra generadas automáticamente en los últimos 7 días (CU36)."""
     hace_7_dias = (date.today() - timedelta(days=7)).isoformat()
     ordenes = supabase.table('orden_compra').select(
         'id, estado, total', count='exact'

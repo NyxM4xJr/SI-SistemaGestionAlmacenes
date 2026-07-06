@@ -83,7 +83,7 @@ def confirmar_pago(session_id):
 
 
 # ============================================================
-#   PayPal (CU36 - Ciclo 5) — Segunda pasarela de pago
+#   PayPal (CU35 - Ciclo 5) — Segunda pasarela de pago
 #   Flujo server-side por redirección (análogo a Stripe):
 #   crear orden -> aprobar en PayPal -> capturar al volver.
 #   NOTA: PayPal sandbox no admite BOB; se usa USD.

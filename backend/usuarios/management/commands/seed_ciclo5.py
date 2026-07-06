@@ -9,7 +9,7 @@
 #   (reutiliza las filas existentes por nombre).
 #
 #   Arma una situación de negocio coherente:
-#     - CU37 Órdenes de compra: insumos con stock <= stock_min +
+#     - CU36 Órdenes de compra: insumos con stock <= stock_min +
 #       2 proveedores (con email) y precios distintos por insumo,
 #       para que el sistema elija el más barato y notifique.
 #     - CU34 Caducidad (FEFO): lotes con detalle vencido / por
@@ -38,14 +38,14 @@ INSUMOS_SEED = [
 ]
 
 # Stock por insumo: (nombre_insumo, cantidad, stock_min, stock_max)
-# Tomate y Leche quedan EN/BAJO el mínimo -> disparan CU37.
+# Tomate y Leche quedan EN/BAJO el mínimo -> disparan CU36.
 STOCK_SEED = {
     "Tomate Perita": (2, 10, 50),
     "Leche Entera":  (5, 8, 40),
     "Harina 0000":   (100, 20, 200),
 }
 
-# Proveedores de demo (ambos con email para CU37 -> notificación)
+# Proveedores de demo (ambos con email para CU36 -> notificación)
 # NOTA: Resend sin dominio verificado solo entrega al email del dueño de
 # la cuenta, por eso ambos proveedores demo usan el mismo correo real
 # (el de la cuenta) en vez de direcciones ficticias @demo.com.
@@ -173,7 +173,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"  + proveedor: {nombre} <{email}>"))
         return resultado
 
-    # ── proveedor_insumo (precios distintos → CU37 elige el más barato) ──
+    # ── proveedor_insumo (precios distintos → CU36 elige el más barato) ──
     def _seed_proveedor_insumo(self, insumos, proveedores):
         barato = proveedores["Distribuidora Andina"]
         caro = proveedores["Mercado Central"]

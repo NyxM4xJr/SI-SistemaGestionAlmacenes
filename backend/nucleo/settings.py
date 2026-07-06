@@ -166,7 +166,7 @@ STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 #             ---- CICLO #5 ----
 # ============================================================
 
-# PayPal (CU36) - Segunda pasarela de pago
+# PayPal (CU35) - Segunda pasarela de pago
 PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
 PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 PAYPAL_MODE = os.getenv('PAYPAL_MODE', 'sandbox')  # 'sandbox' o 'live'
@@ -175,14 +175,14 @@ PAYPAL_MODE = os.getenv('PAYPAL_MODE', 'sandbox')  # 'sandbox' o 'live'
 # no bloquear desarrollo local) — en producción SIEMPRE debe configurarse.
 PAYPAL_WEBHOOK_ID = os.getenv('PAYPAL_WEBHOOK_ID')
 
-# OpenAI (CU38/CU39) - Agente de IA real para el briefing ejecutivo
+# OpenAI (CU37/CU38) - Agente de IA real para el briefing ejecutivo
 # proactivo y la generación de sugerencias de recetas.
 # Se llama vía API HTTP directa (requests), sin el SDK oficial, para no
 # sumar una dependencia nueva al proyecto (mismo criterio que Resend).
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
 
-# Email (CU33/CU37) - Notificaciones por correo vía API HTTP de Resend.
+# Email (CU33/CU36) - Notificaciones por correo vía API HTTP de Resend.
 # NO se usa SMTP: Railway bloquea las conexiones SMTP salientes (confirmado
 # en producción: el worker de gunicorn colgaba hasta ser matado por
 # WORKER TIMEOUT al intentar conectar por socket). Resend usa HTTPS

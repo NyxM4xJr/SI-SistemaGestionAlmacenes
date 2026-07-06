@@ -1,6 +1,6 @@
 # ============================================================
 # ARCHIVO: backend/usuarios/management/commands/seed_ordenes_demo.py
-# CASO DE USO: CU37 - Órdenes de Compra Automáticas
+# CASO DE USO: CU36 - Órdenes de Compra Automáticas
 # CICLO: 5
 #
 # DESCRIPCIÓN:
@@ -51,7 +51,7 @@ PRECIOS_SEED = [
 
 
 class Command(BaseCommand):
-    help = "Agrega insumos/proveedores extra para demostrar varias órdenes de compra distintas (CU37)."
+    help = "Agrega insumos/proveedores extra para demostrar varias órdenes de compra distintas (CU36)."
 
     def handle(self, *args, **options):
         self.sb = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)

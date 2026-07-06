@@ -1,7 +1,7 @@
 /**
  * ============================================================
  * ARCHIVO: frontend/src/services/ordenCompraService.ts
- * CASO DE USO: CU37 - Órdenes de Compra Automáticas
+ * CASO DE USO: CU36 - Órdenes de Compra Automáticas
  * CICLO: 5
  * FECHA: 03/07/26
  *

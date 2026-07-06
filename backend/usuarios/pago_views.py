@@ -182,7 +182,7 @@ class SaldoPagosView(APIView):
 
 
 # ============================================================
-#   PayPal (CU36 - Ciclo 5)
+#   PayPal (CU35 - Ciclo 5)
 # ============================================================
 
 class CrearOrdenPayPalView(APIView):

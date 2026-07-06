@@ -53,7 +53,7 @@ export async function getSaldoPagos(): Promise<{saldo_total: number}> {
   return data;
 }
 
-// ── CU36 (Ciclo 5): PayPal ───────────────────────────────────
+// ── CU35 (Ciclo 5): PayPal ───────────────────────────────────
 
 /** POST /api/pagos/paypal/crear-orden/ — Crea orden y devuelve la URL de aprobación */
 export async function crearOrdenPayPal(

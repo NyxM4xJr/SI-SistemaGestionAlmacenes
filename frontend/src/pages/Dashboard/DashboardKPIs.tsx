@@ -198,7 +198,7 @@ export default function DashboardKPIs() {
           </Button>
         </div>
 
-        {/* ── CU38: Briefing ejecutivo proactivo con IA ── */}
+        {/* ── CU37: Briefing ejecutivo proactivo con IA ── */}
         <div className="mb-6">
           <BriefingIACard />
         </div>

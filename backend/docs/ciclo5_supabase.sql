@@ -5,14 +5,14 @@
 -- ============================================================
 
 -- ------------------------------------------------------------
--- CU36 — PayPal: columna para el id de orden de PayPal
+-- CU35 — PayPal: columna para el id de orden de PayPal
 -- (usado en Depositar Fondos, junto a Stripe)
 -- ------------------------------------------------------------
 ALTER TABLE pagos_sistema
     ADD COLUMN IF NOT EXISTS paypal_order_id TEXT;
 
 -- ------------------------------------------------------------
--- CU37 — Órdenes de compra
+-- CU36 — Órdenes de compra
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS orden_compra (
     id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

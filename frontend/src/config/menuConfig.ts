@@ -208,7 +208,7 @@ export const menuConfig: MenuNode[] = [
         roles: ["chef", "gerente"],
       },
       {
-        id: "cu41",
+        id: "cu38",
         label: "Recetas Sugeridas por IA",
         path: "/recetas-ia",
         roles: ["chef", "gerente", "administrador"],
@@ -241,7 +241,7 @@ export const menuConfig: MenuNode[] = [
         roles: ["administrador", "gerente"],
       },
       {
-        id: "cu37",
+        id: "cu36",
         label: "Órdenes de Compra",
         path: "/ordenes-compra",
         roles: ["administrador", "gerente"],

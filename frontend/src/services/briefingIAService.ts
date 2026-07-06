@@ -1,7 +1,7 @@
 /**
  * ============================================================
  * ARCHIVO: frontend/src/services/briefingIAService.ts
- * CASO DE USO: CU38 - Briefing Ejecutivo Proactivo con IA
+ * CASO DE USO: CU37 - Briefing Ejecutivo Proactivo con IA
  * CICLO: 5
  *
  * DESCRIPCIÓN: Servicio de comunicación con el endpoint del
