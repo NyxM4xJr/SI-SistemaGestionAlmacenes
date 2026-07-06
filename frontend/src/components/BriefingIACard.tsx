@@ -62,10 +62,11 @@ export default function BriefingIACard({ compacto = false }: BriefingIACardProps
     cargar();
   }, [cargar]);
 
-  const primeraLinea = briefing
+  const lineasResumen = briefing
     ?.split("\n")
-    .map((l) => l.replace(/^-\s*/, "").trim())
-    .find((l) => l.length > 0);
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0)
+    .slice(0, 3);
 
   return (
     <Card className="rounded-3xl shadow-md border-0 bg-gradient-to-br from-indigo-50 to-white">
@@ -87,7 +88,11 @@ export default function BriefingIACard({ compacto = false }: BriefingIACardProps
               <p className="text-sm text-gray-400 italic">{error}</p>
             ) : compacto ? (
               <>
-                <p className="text-sm text-gray-700 truncate">{primeraLinea}</p>
+                <div className="text-sm text-gray-700 leading-relaxed space-y-0.5">
+                  {lineasResumen?.map((linea, i) => (
+                    <p key={i}>{linea}</p>
+                  ))}
+                </div>
                 <button
                   onClick={() => navigate("/dashboard")}
                   className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"

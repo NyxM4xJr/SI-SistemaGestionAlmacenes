@@ -295,7 +295,7 @@ export default function DashboardKPIs() {
             <Card className="rounded-3xl shadow-md border-0 bg-white">
               <CardHeader className="pb-2 px-8 pt-8">
                 <CardTitle className="text-base font-bold text-gray-900">
-                  Tendencia de Valor Perdido (mes actual, por día)
+                  Tendencia de Valor Perdido — Este Mes, Día a Día
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-8 pb-8 pt-4">
