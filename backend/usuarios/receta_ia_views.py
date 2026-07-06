@@ -1,6 +1,6 @@
 # ============================================================
 # ARCHIVO: backend/usuarios/receta_ia_views.py
-# CASO DE USO: CU41 - Generación de Recetas con IA
+# CASO DE USO: CU39 - Generación de Recetas con IA
 # CICLO: 5
 #
 # DESCRIPCIÓN:
@@ -159,7 +159,7 @@ class SugerirRecetaIAView(APIView):
             supabase = _sb()
             candidatos = _insumos_candidatos(supabase)
         except Exception as e:
-            logger.error(f"Error obteniendo insumos candidatos para CU41: {str(e)}")
+            logger.error(f"Error obteniendo insumos candidatos para CU39: {str(e)}")
             return Response(
                 {'error': 'No se pudieron obtener los insumos próximos a vencer.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -179,7 +179,7 @@ class SugerirRecetaIAView(APIView):
                 max_tokens=1200,
             )
         except IANoDisponibleError as e:
-            logger.error(f"IA no disponible para CU41: {str(e)}")
+            logger.error(f"IA no disponible para CU39: {str(e)}")
             return Response(
                 {'error': f'El agente de IA no está disponible: {str(e)}'},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,

@@ -1,15 +1,15 @@
 # ============================================================
 # ARCHIVO: backend/usuarios/management/commands/seed_recetas_ia_demo.py
-# CASO DE USO: CU41 - Generación de Recetas con IA
+# CASO DE USO: CU39 - Generación de Recetas con IA
 # CICLO: 5
 #
 # DESCRIPCIÓN:
 #   Seeder de demo para tener MÁS variedad de insumos candidatos al
-#   generar sugerencias con IA (CU41), además de los que ya deja
+#   generar sugerencias con IA (CU39), además de los que ya deja
 #   seed_ciclo5 (Tomate/Leche). Agrega 2 insumos de categorías
 #   distintas, cada uno con:
 #     - Un lote/detalle_lote con fecha_vencimiento próxima (ventana
-#       de 7 días que usa CU41).
+#       de 7 días que usa CU39).
 #     - Un porcentaje de merma técnica en FICHA_TECNICA (CU22), para
 #       que la IA también razone sobre merma, no solo días restantes.
 #
@@ -37,7 +37,7 @@ COSTO_UNITARIO_DEMO = 6.0
 
 
 class Command(BaseCommand):
-    help = "Agrega insumos de demo con vencimiento próximo y merma técnica, para probar CU41 con más variedad."
+    help = "Agrega insumos de demo con vencimiento próximo y merma técnica, para probar CU39 con más variedad."
 
     def _insert(self, tabla, payload):
         """Mismo helper que seed_ciclo5: inserta sin 'id' y, si la tabla
@@ -54,7 +54,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.sb = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
-        self.stdout.write(self.style.MIGRATE_HEADING("== Seeder de demo: variedad para Recetas IA (CU41) =="))
+        self.stdout.write(self.style.MIGRATE_HEADING("== Seeder de demo: variedad para Recetas IA (CU39) =="))
 
         hoy = date.today()
 

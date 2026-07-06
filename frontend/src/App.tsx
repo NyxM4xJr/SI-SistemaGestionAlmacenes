@@ -111,7 +111,7 @@ import CaducidadList from "./pages/Caducidad/CaducidadList";
 // CU37 - Órdenes de Compra Automáticas
 import OrdenCompraList from "./pages/OrdenesCompra/OrdenCompraList";
 
-// CU41 - Generación de Recetas con IA
+// CU39 - Generación de Recetas con IA
 import RecetasIA from "./pages/Menus/RecetasIA";
 
 const queryClient = new QueryClient();

@@ -62,8 +62,8 @@ from .pago_views import (  # CU31
     RechazarPagoManualView, # CU36 (Ciclo 5)
 )
 from .notificacion_views import RevisarNotificarView  # CU33 (Ciclo 5)
-from .briefing_ia_views import BriefingIAView  # CU40 (Ciclo 5)
-from .receta_ia_views import SugerirRecetaIAView  # CU41 (Ciclo 5)
+from .briefing_ia_views import BriefingIAView  # CU38 (Ciclo 5)
+from .receta_ia_views import SugerirRecetaIAView  # CU39 (Ciclo 5)
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -192,10 +192,10 @@ urlpatterns = [
     # crea un endpoint de escritura propio para esto.
     path('sugerir-menu/', SugerirMenuView.as_view(), name='sugerir-menu'),
 
-    # ---- CU40 BRIEFING EJECUTIVO PROACTIVO CON IA ----
+    # ---- CU38 BRIEFING EJECUTIVO PROACTIVO CON IA ----
     path('briefing-ia/', BriefingIAView.as_view(), name='briefing-ia'),
 
-    # ---- CU41 GENERACIÓN DE RECETAS CON IA ----
+    # ---- CU39 GENERACIÓN DE RECETAS CON IA ----
     path('recetas-ia/generar/', SugerirRecetaIAView.as_view(), name='recetas-ia-generar'),
 
     # ---- CU25 GENERAR REPORTE DE VALOR PERDIDO ----

@@ -1,7 +1,7 @@
 /**
  * ============================================================
  * ARCHIVO: frontend/src/pages/Menus/RecetasIA.tsx
- * CASO DE USO: CU41 - Generación de Recetas con IA
+ * CASO DE USO: CU39 - Generación de Recetas con IA
  * CICLO: 5
  *
  * DESCRIPCIÓN: A diferencia de CU24 (que solo filtra el catálogo

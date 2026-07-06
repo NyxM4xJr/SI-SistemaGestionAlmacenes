@@ -1,7 +1,7 @@
 # ============================================================
 # ARCHIVO: backend/nucleo/openai_utils.py
-# CASOS DE USO: CU40 (Briefing Ejecutivo Proactivo) y
-#               CU41 (Generación de Recetas con IA)
+# CASOS DE USO: CU38 (Briefing Ejecutivo Proactivo) y
+#               CU39 (Generación de Recetas con IA)
 # CICLO: 5
 #
 # DESCRIPCIÓN:
@@ -11,14 +11,14 @@
 #   un SDK de email). Se usa Chat Completions (no la API de
 #   Responses) por ser la opción más estable y ampliamente
 #   documentada, con soporte nativo de 'response_format' para forzar
-#   JSON, que es justo lo que necesita CU41.
+#   JSON, que es justo lo que necesita CU39.
 #
 #   Dos entradas:
 #     - generar_texto_ia(): devuelve texto plano (para el briefing
-#       en lenguaje natural de CU40).
+#       en lenguaje natural de CU38).
 #     - generar_json_ia(): fuerza a la API a responder SOLO JSON
 #       (response_format={"type": "json_object"}) y lo parsea (para
-#       las recetas estructuradas de CU41).
+#       las recetas estructuradas de CU39).
 # ============================================================
 
 import json

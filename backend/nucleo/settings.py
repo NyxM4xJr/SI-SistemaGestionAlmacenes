@@ -175,7 +175,7 @@ PAYPAL_MODE = os.getenv('PAYPAL_MODE', 'sandbox')  # 'sandbox' o 'live'
 # no bloquear desarrollo local) — en producción SIEMPRE debe configurarse.
 PAYPAL_WEBHOOK_ID = os.getenv('PAYPAL_WEBHOOK_ID')
 
-# OpenAI (CU40/CU41) - Agente de IA real para el briefing ejecutivo
+# OpenAI (CU38/CU39) - Agente de IA real para el briefing ejecutivo
 # proactivo y la generación de sugerencias de recetas.
 # Se llama vía API HTTP directa (requests), sin el SDK oficial, para no
 # sumar una dependencia nueva al proyecto (mismo criterio que Resend).

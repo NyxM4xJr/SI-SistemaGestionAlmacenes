@@ -1,6 +1,6 @@
 # ============================================================
 # ARCHIVO: backend/usuarios/briefing_ia_views.py
-# CASO DE USO: CU40 - Briefing Ejecutivo Proactivo con IA
+# CASO DE USO: CU38 - Briefing Ejecutivo Proactivo con IA
 # CICLO: 5
 #
 # DESCRIPCIÓN:
