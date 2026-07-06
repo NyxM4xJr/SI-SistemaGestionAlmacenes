@@ -211,7 +211,7 @@ export const menuConfig: MenuNode[] = [
         id: "cu41",
         label: "Recetas Sugeridas por IA",
         path: "/recetas-ia",
-        roles: ["chef", "gerente"],
+        roles: ["chef", "gerente", "administrador"],
       },
     ],
   },
