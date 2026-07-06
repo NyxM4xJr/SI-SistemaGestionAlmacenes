@@ -157,11 +157,10 @@ export default function DashboardKPIs() {
   }
 
   function formatoPeriodo(periodo: string): string {
-    // periodo viene como 'YYYY-MM' — se muestra como 'MMM YYYY' simple
-    const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-    const [anio, mes] = periodo.split("-");
-    const idx = parseInt(mes, 10) - 1;
-    return idx >= 0 && idx < 12 ? `${meses[idx]} ${anio}` : periodo;
+    // periodo viene como 'YYYY-MM-DD' (día a día del mes actual) — se
+    // muestra solo como 'DD' para no saturar el eje X.
+    const partes = periodo.split("-");
+    return partes.length === 3 ? partes[2] : periodo;
   }
 
   return (
@@ -296,7 +295,7 @@ export default function DashboardKPIs() {
             <Card className="rounded-3xl shadow-md border-0 bg-white">
               <CardHeader className="pb-2 px-8 pt-8">
                 <CardTitle className="text-base font-bold text-gray-900">
-                  Tendencia de Valor Perdido (últimos 6 meses)
+                  Tendencia de Valor Perdido (mes actual, por día)
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-8 pb-8 pt-4">

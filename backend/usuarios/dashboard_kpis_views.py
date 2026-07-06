@@ -35,7 +35,7 @@ importadas de otros archivos):
 Correspondencia con el diagrama de secuencia (CICLO4_DIAGRAMS_SPEC_MATEO.md):
 - F1 alt  [cálculo exitoso / sin datos suficientes] -> cada sub-KPI se calcula
           en su propio try/except para no tumbar el dashboard completo
-- F2 loop [por cada uno de los últimos 6 meses]     -> construcción de la
+- F2 loop [por cada día del mes en curso]           -> construcción de la
           serie de tendencia de valor perdido
 
 Sin fragmento `critical`: este CU no registra bitácora.
@@ -56,14 +56,6 @@ from .reporte_costos_views import _calcular_reporte_costos                # CU27
 from .reporte_rotacion_views import _calcular_reporte_rotacion            # CU26
 
 logger = logging.getLogger(__name__)
-
-
-def _mes_anterior(anio: int, mes: int) -> tuple:
-    """Retorna (anio, mes) del mes calendario anterior, sin usar datetime.date
-    para la resta (solo aritmética simple de enteros)."""
-    if mes == 1:
-        return anio - 1, 12
-    return anio, mes - 1
 
 
 def _calcular_valor_perdido_acumulado(supabase) -> dict:
@@ -181,16 +173,13 @@ def _calcular_stock_bajo(supabase) -> dict:
 
 def _calcular_tendencia_valor_perdido(supabase) -> list:
     """
-    F2 (loop) — serie de tendencia: valor perdido de los últimos 6
-    meses (incluyendo el actual), reutilizando _calcular_reporte_valor_perdido()
-    de CU25 con agrupar_por='mes' y un rango de fechas que cubre los
-    6 meses, en vez de hacer 6 llamadas separadas.
+    F2 (loop) — serie de tendencia: valor perdido DÍA A DÍA del mes en
+    curso (no de los últimos 6 meses), reutilizando
+    _calcular_reporte_valor_perdido() de CU25 con agrupar_por='dia' y un
+    rango de fechas que cubre desde el 1° del mes actual hasta hoy.
     """
     hoy = date.today()
-    anio, mes = hoy.year, hoy.month
-    for _ in range(5):
-        anio, mes = _mes_anterior(anio, mes)
-    fecha_desde = date(anio, mes, 1).isoformat()
+    fecha_desde = hoy.replace(day=1).isoformat()
     fecha_hasta = hoy.isoformat()
 
     reporte = _calcular_reporte_valor_perdido(
@@ -198,7 +187,7 @@ def _calcular_tendencia_valor_perdido(supabase) -> list:
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
         insumo_id=None,
-        agrupar_por='mes',
+        agrupar_por='dia',
     )
     # por_periodo ya viene ordenado ascendente por _calcular_reporte_valor_perdido
     return reporte['por_periodo']
@@ -251,7 +240,7 @@ class DashboardKPIsView(APIView):
             _calcular_stock_bajo, supabase, "stock bajo"
         )
 
-        # F2 — tendencia (loop de 6 meses resuelto en una sola llamada agregada)
+        # F2 — tendencia (loop día a día del mes actual, en una sola llamada agregada)
         try:
             kpis['tendencia_valor_perdido'] = _calcular_tendencia_valor_perdido(supabase)
         except Exception as e:
