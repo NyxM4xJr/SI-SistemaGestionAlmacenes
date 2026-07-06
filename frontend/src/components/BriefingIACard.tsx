@@ -5,8 +5,9 @@
  * CICLO: 5
  *
  * DESCRIPCIÓN: Card reutilizable del briefing generado por IA.
- * Se usa en Profile.tsx (landing real post-login) y en
- * DashboardKPIs.tsx (CU29), para no duplicar la lógica de carga.
+ * Se usa en Profile.tsx (landing real post-login, modo "compacto":
+ * solo la primera línea + link al Dashboard) y en DashboardKPIs.tsx
+ * (CU29, modo completo), para no duplicar la lógica de carga.
  * Solo se debe renderizar para roles administrador/gerente (el
  * backend ya lo valida con 403, pero se evita el request para
  * el resto de roles desde donde se use este componente).
@@ -14,11 +15,32 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import { Bot, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Bot, Loader2, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { getBriefingIA } from "@/services/briefingIAService";
 
-export default function BriefingIACard() {
+/**
+ * Limpia marcado Markdown residual (negrita/cursiva/títulos/backticks)
+ * como red de seguridad: el prompt ya le pide a la IA texto plano, pero
+ * esto evita que asteriscos sueltos lleguen a mostrarse tal cual si el
+ * modelo igual los genera.
+ */
+function limpiarMarkdown(texto: string): string {
+  return texto
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/`/g, "");
+}
+
+interface BriefingIACardProps {
+  /** Modo compacto (Perfil): solo la primera línea + link al Dashboard. */
+  compacto?: boolean;
+}
+
+export default function BriefingIACard({ compacto = false }: BriefingIACardProps) {
+  const navigate = useNavigate();
   const [briefing, setBriefing] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +50,7 @@ export default function BriefingIACard() {
       setCargando(true);
       setError(null);
       const data = await getBriefingIA();
-      setBriefing(data.resumen);
+      setBriefing(limpiarMarkdown(data.resumen));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "No se pudo generar el briefing.");
     } finally {
@@ -40,9 +62,14 @@ export default function BriefingIACard() {
     cargar();
   }, [cargar]);
 
+  const primeraLinea = briefing
+    ?.split("\n")
+    .map((l) => l.replace(/^-\s*/, "").trim())
+    .find((l) => l.length > 0);
+
   return (
     <Card className="rounded-3xl shadow-md border-0 bg-gradient-to-br from-indigo-50 to-white">
-      <CardContent className="p-6">
+      <CardContent className={compacto ? "p-4" : "p-6"}>
         <div className="flex items-start gap-3">
           <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600 shrink-0">
             <Bot className="h-5 w-5" />
@@ -58,6 +85,17 @@ export default function BriefingIACard() {
               </div>
             ) : error ? (
               <p className="text-sm text-gray-400 italic">{error}</p>
+            ) : compacto ? (
+              <>
+                <p className="text-sm text-gray-700 truncate">{primeraLinea}</p>
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                >
+                  Ver briefing completo en el Dashboard
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              </>
             ) : (
               <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
                 {briefing}

@@ -130,7 +130,7 @@ export default function Profile() {
       <main className="container py-8 lg:py-14 max-w-3xl">
         {puedeVerBriefing && (
           <div className="mb-6">
-            <BriefingIACard />
+            <BriefingIACard compacto />
           </div>
         )}
         <div className="bg-card rounded-3xl shadow-card overflow-hidden">
