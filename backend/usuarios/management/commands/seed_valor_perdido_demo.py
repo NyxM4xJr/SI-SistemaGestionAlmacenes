@@ -31,11 +31,14 @@ from supabase import create_client
 MARCADOR_DEMO = "[demo-valor-perdido]"
 
 # (nombre_insumo, dias_atras, cantidad, valor_perdido, causa)
+# Cantidades deliberadamente bajas (1): un trigger de la BD rechaza la
+# merma si excede el stock disponible, y algunos insumos de demo quedan
+# con muy poco stock (ej. Tomate Perita en 2, por seed_reabastecimiento).
 MERMAS_SEED = [
-    ("Tomate Perita",   1, 3, 18.50, "Vencimiento"),
-    ("Leche Entera",    3, 2, 14.00, "Daño físico"),
+    ("Tomate Perita",   1, 1, 18.50, "Vencimiento"),
+    ("Leche Entera",    3, 1, 14.00, "Daño físico"),
     ("Harina 0000",     5, 1, 6.75,  "Error de manipulación"),
-    ("Zanahoria",       7, 2, 9.20,  "Vencimiento"),
+    ("Zanahoria",       7, 1, 9.20,  "Vencimiento"),
     ("Pollo Entero",   10, 1, 22.00, "Deterioro por temperatura"),
 ]
 
@@ -76,11 +79,22 @@ class Command(BaseCommand):
                 continue
             insumo_id = insumo.data[0]["id"]
 
-            stock = self.sb.table("stock").select("id").eq("insumo_id", insumo_id).execute()
+            stock = self.sb.table("stock").select("id, cantidad").eq("insumo_id", insumo_id).execute()
             if not stock.data:
                 self.stdout.write(f"  ! '{nombre}' no tiene stock, se omite")
                 continue
             stock_id = stock.data[0]["id"]
+
+            # La BD rechaza la merma si excede el stock disponible: se
+            # verifica antes de intentar el insert en vez de dejar que
+            # rompa el seeder completo.
+            disponible = float(stock.data[0]["cantidad"])
+            if disponible < cantidad:
+                self.stdout.write(self.style.WARNING(
+                    f"  ! '{nombre}' tiene solo {disponible} en stock "
+                    f"(se necesita {cantidad}), se omite"
+                ))
+                continue
 
             fecha_mov = hoy - timedelta(days=dias_atras)
             # Si la fecha cae antes del 1° del mes actual, se ajusta al día 1
