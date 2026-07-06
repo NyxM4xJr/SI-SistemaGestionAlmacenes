@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppHeader from "@/components/AppHeader";
+import BriefingIACard from "@/components/BriefingIACard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +53,9 @@ export default function Profile() {
   const meta = ROLE_META[user.rol] || ROLE_META.usuario;
   const Icon = meta.icon;
   const isChef = user.rol === "chef";
+  // CU40: el briefing solo aplica a roles con visión de negocio (mismo
+  // criterio de permisos que el backend en BriefingIAView).
+  const puedeVerBriefing = user.rol === "administrador" || user.rol === "gerente";
 
   const save = async () => {
     // Validaciones básicas
@@ -124,6 +128,11 @@ export default function Profile() {
     <div className="min-h-screen bg-gradient-soft">
       <AppHeader />
       <main className="container py-8 lg:py-14 max-w-3xl">
+        {puedeVerBriefing && (
+          <div className="mb-6">
+            <BriefingIACard />
+          </div>
+        )}
         <div className="bg-card rounded-3xl shadow-card overflow-hidden">
           {/* Banner */}
           <div className={`h-40 bg-gradient-to-br ${meta.color} relative`}>
