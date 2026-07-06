@@ -43,6 +43,7 @@ import {
   RotateCcw,
   CalendarClock,
   AlertTriangle,
+  Bot,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -64,6 +65,7 @@ import {
   type DashboardKpisResponse,
   type KpiNumerico,
 } from "@/services/dashboardKpisService";
+import { getBriefingIA } from "@/services/briefingIAService";
 
 type NivelSemaforo = "verde" | "amarillo" | "rojo" | "neutro";
 
@@ -86,6 +88,11 @@ export default function DashboardKPIs() {
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
 
+  // ── CU40: Briefing ejecutivo proactivo con IA ───────────────
+  const [briefing, setBriefing] = useState<string | null>(null);
+  const [cargandoBriefing, setCargandoBriefing] = useState(true);
+  const [errorBriefing, setErrorBriefing] = useState<string | null>(null);
+
   const cargarDashboard = useCallback(async (esRefresco: boolean) => {
     try {
       if (esRefresco) setRefrescando(true);
@@ -102,12 +109,29 @@ export default function DashboardKPIs() {
     }
   }, []);
 
+  const cargarBriefing = useCallback(async () => {
+    try {
+      setCargandoBriefing(true);
+      setErrorBriefing(null);
+      const data = await getBriefingIA();
+      setBriefing(data.resumen);
+    } catch (err: unknown) {
+      setErrorBriefing(
+        err instanceof Error ? err.message : "No se pudo generar el briefing."
+      );
+    } finally {
+      setCargandoBriefing(false);
+    }
+  }, []);
+
   useEffect(() => {
     cargarDashboard(false);
-  }, [cargarDashboard]);
+    cargarBriefing();
+  }, [cargarDashboard, cargarBriefing]);
 
   function handleRefrescar() {
     cargarDashboard(true);
+    cargarBriefing();
   }
 
   // ── Helpers de semáforo por KPI ─────────────────────────────
@@ -197,6 +221,34 @@ export default function DashboardKPIs() {
             Refrescar
           </Button>
         </div>
+
+        {/* ── CU40: Briefing ejecutivo proactivo con IA ── */}
+        <Card className="rounded-3xl shadow-md border-0 bg-gradient-to-br from-indigo-50 to-white mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600 shrink-0">
+                <Bot className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-indigo-600 uppercase tracking-wide mb-1">
+                  Briefing del día · generado por IA
+                </p>
+                {cargandoBriefing ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-400 py-1">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Analizando el estado del negocio...
+                  </div>
+                ) : errorBriefing ? (
+                  <p className="text-sm text-gray-400 italic">{errorBriefing}</p>
+                ) : (
+                  <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                    {briefing}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {cargando ? (
           <div className="flex items-center justify-center py-20">

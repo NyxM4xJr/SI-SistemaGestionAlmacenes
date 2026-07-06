@@ -175,6 +175,13 @@ PAYPAL_MODE = os.getenv('PAYPAL_MODE', 'sandbox')  # 'sandbox' o 'live'
 # no bloquear desarrollo local) — en producción SIEMPRE debe configurarse.
 PAYPAL_WEBHOOK_ID = os.getenv('PAYPAL_WEBHOOK_ID')
 
+# OpenAI (CU40/CU41) - Agente de IA real para el briefing ejecutivo
+# proactivo y la generación de sugerencias de recetas.
+# Se llama vía API HTTP directa (requests), sin el SDK oficial, para no
+# sumar una dependencia nueva al proyecto (mismo criterio que Resend).
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
+
 # Email (CU33/CU37) - Notificaciones por correo vía API HTTP de Resend.
 # NO se usa SMTP: Railway bloquea las conexiones SMTP salientes (confirmado
 # en producción: el worker de gunicorn colgaba hasta ser matado por

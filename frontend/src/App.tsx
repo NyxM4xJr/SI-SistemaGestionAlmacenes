@@ -111,6 +111,9 @@ import CaducidadList from "./pages/Caducidad/CaducidadList";
 // CU37 - Órdenes de Compra Automáticas
 import OrdenCompraList from "./pages/OrdenesCompra/OrdenCompraList";
 
+// CU41 - Generación de Recetas con IA
+import RecetasIA from "./pages/Menus/RecetasIA";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -192,6 +195,7 @@ const App = () => (
 
             {/* CU24 - Consultar Sugerencia de Menú por Temporada */}
             <Route path="/sugerir-menu" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><SugerirMenu /></ProtectedRoute>} />
+            <Route path="/recetas-ia" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><RecetasIA /></ProtectedRoute>} />
 
 
           {/* PAQUETE 5: Proveedores */}

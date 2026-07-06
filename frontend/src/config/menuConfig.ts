@@ -207,6 +207,12 @@ export const menuConfig: MenuNode[] = [
         path: "/sugerir-menu",
         roles: ["chef", "gerente"],
       },
+      {
+        id: "cu41",
+        label: "Recetas Sugeridas por IA",
+        path: "/recetas-ia",
+        roles: ["chef", "gerente"],
+      },
     ],
   },
 
