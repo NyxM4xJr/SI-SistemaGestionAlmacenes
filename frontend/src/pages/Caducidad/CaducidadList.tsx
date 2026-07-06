@@ -150,7 +150,7 @@ export default function CaducidadList() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
               <CalendarClock className="h-8 w-8 text-emerald-500" />
-              Caducidad de Lotes (FEFO)
+              Caducidad de Lotes
             </h1>
             <p className="text-gray-500 mt-1 text-sm">
               Primero en vencer, primero en salir — consumí los lotes en orden

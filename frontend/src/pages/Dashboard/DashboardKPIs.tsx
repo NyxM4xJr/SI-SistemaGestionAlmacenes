@@ -33,11 +33,6 @@ import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import {
   LayoutDashboard,
-  Loader2,
-  RefreshCw,
-  TrendingDown,
-  TrendingUp,
-  Minus,
   DollarSign,
   Percent,
   RotateCcw,
@@ -54,7 +49,6 @@ import {
   Tooltip,
 } from "recharts";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppHeader from "@/components/AppHeader";
@@ -68,18 +62,11 @@ import BriefingIACard from "@/components/BriefingIACard";
 
 type NivelSemaforo = "verde" | "amarillo" | "rojo" | "neutro";
 
-const ESTILOS_SEMAFORO: Record<NivelSemaforo, string> = {
-  verde: "bg-green-50 text-green-700 border-green-100",
-  amarillo: "bg-yellow-50 text-yellow-700 border-yellow-100",
-  rojo: "bg-red-50 text-red-700 border-red-100",
-  neutro: "bg-gray-50 text-gray-500 border-gray-100",
-};
-
-const ICONO_SEMAFORO: Record<NivelSemaforo, JSX.Element> = {
-  verde: <TrendingUp className="h-3.5 w-3.5" />,
-  amarillo: <Minus className="h-3.5 w-3.5" />,
-  rojo: <TrendingDown className="h-3.5 w-3.5" />,
-  neutro: <Minus className="h-3.5 w-3.5" />,
+const PUNTO_SEMAFORO: Record<NivelSemaforo, string> = {
+  verde: "bg-green-500",
+  amarillo: "bg-yellow-500",
+  rojo: "bg-red-500",
+  neutro: "bg-gray-300",
 };
 
 export default function DashboardKPIs() {
@@ -185,16 +172,11 @@ export default function DashboardKPIs() {
 
           <Button
             variant="outline"
-            className="rounded-xl h-11 gap-2 border-gray-200"
+            className="rounded-xl h-11 border-gray-200"
             onClick={handleRefrescar}
             disabled={cargando || refrescando}
           >
-            {refrescando ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
-            Refrescar
+            {refrescando ? "Refrescando..." : "Refrescar"}
           </Button>
         </div>
 
@@ -363,9 +345,7 @@ function CardKpi({
           <div className="p-2.5 rounded-xl bg-orange-50 text-orange-500">
             {icono}
           </div>
-          <Badge className={`border gap-1 ${ESTILOS_SEMAFORO[nivel]}`}>
-            {ICONO_SEMAFORO[nivel]}
-          </Badge>
+          <span className={`h-2.5 w-2.5 rounded-full mt-1 ${PUNTO_SEMAFORO[nivel]}`} />
         </div>
         <p className="text-xs text-gray-400 mb-1">{titulo}</p>
         <p className="text-2xl font-bold text-gray-900">{valorPrincipal}</p>

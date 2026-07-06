@@ -16,7 +16,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, Loader2, ArrowRight } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { getBriefingIA } from "@/services/briefingIAService";
 
@@ -72,9 +72,6 @@ export default function BriefingIACard({ compacto = false }: BriefingIACardProps
     <Card className="rounded-3xl shadow-md border-0 bg-gradient-to-br from-indigo-50 to-white">
       <CardContent className={compacto ? "p-4" : "p-6"}>
         <div className="flex items-start gap-3">
-          <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600 shrink-0">
-            <Bot className="h-5 w-5" />
-          </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-indigo-600 uppercase tracking-wide mb-1">
               Briefing del día · generado por IA

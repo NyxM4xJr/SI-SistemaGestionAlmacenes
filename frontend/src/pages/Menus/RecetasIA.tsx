@@ -18,11 +18,9 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   ArrowLeft,
-  Bot,
   Clock,
   Percent,
   ChefHat,
-  Sparkles,
 } from "lucide-react";
 
 import AppHeader from "@/components/AppHeader";
@@ -86,9 +84,6 @@ export default function RecetasIA() {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="p-4 bg-indigo-50 text-indigo-600 rounded-xl hidden sm:block">
-                <Bot className="w-8 h-8" />
-              </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
                   Recetas Sugeridas por IA
@@ -160,8 +155,7 @@ export default function RecetasIA() {
               <Card key={idx} className="rounded-2xl shadow-sm border border-gray-200">
                 <CardContent className="p-6 flex flex-col h-full">
                   <div className="flex items-center gap-2 mb-3">
-                    <Badge className="bg-indigo-100 text-indigo-700 border-0 gap-1">
-                      <Sparkles className="w-3 h-3" />
+                    <Badge className="bg-indigo-100 text-indigo-700 border-0">
                       {plato.categoria}
                     </Badge>
                   </div>

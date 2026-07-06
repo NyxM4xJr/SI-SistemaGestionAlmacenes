@@ -116,8 +116,7 @@ export default function OrdenCompraList() {
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <Truck className="h-8 w-8 text-indigo-500" />
+            <h1 className="text-3xl font-bold text-gray-900">
               Órdenes de Compra
             </h1>
             <p className="text-gray-500 mt-1 text-sm">

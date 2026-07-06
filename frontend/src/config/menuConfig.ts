@@ -156,7 +156,7 @@ export const menuConfig: MenuNode[] = [
       },
       {
         id: "cu34",
-        label: "Caducidad de Lotes (FEFO)",
+        label: "Caducidad de Lotes",
         path: "/caducidad",
         roles: ["administrador", "chef"],
       },
