@@ -1,8 +1,9 @@
 # ============================================================
 # ARCHIVO: backend/nucleo/openai_utils.py
-# CASOS DE USO: CU37 (Briefing Ejecutivo Proactivo) y
-#               CU38 (Generación de Recetas con IA)
-# CICLO: 5
+# CASOS DE USO: CU37 (Briefing Ejecutivo Proactivo),
+#               CU38 (Generación de Recetas con IA),
+#               CU39 (OCR de Facturas) y CU42 (Escaneo de Etiquetas)
+# CICLO: 5 (CU37/CU38) y 6 (CU39/CU42, visión)
 #
 # DESCRIPCIÓN:
 #   Llama a la API de Chat Completions de OpenAI vía HTTP directo
@@ -37,17 +38,28 @@ class IANoDisponibleError(Exception):
 
 
 def _llamar_openai(system_prompt: str, user_prompt: str, max_tokens: int = 1024,
-                    forzar_json: bool = False) -> str:
+                    forzar_json: bool = False, imagen_url: str = None) -> str:
     api_key = getattr(settings, "OPENAI_API_KEY", None)
     if not api_key:
         raise IANoDisponibleError("OPENAI_API_KEY no configurada.")
+
+    # Si viene una imagen (CU39/CU42, visión), el contenido del mensaje de
+    # usuario se arma como array [texto, imagen]; gpt-4o-mini acepta visión
+    # con este formato. Si no, se usa el string plano de siempre.
+    if imagen_url:
+        user_content = [
+            {"type": "text", "text": user_prompt},
+            {"type": "image_url", "image_url": {"url": imagen_url}},
+        ]
+    else:
+        user_content = user_prompt
 
     payload = {
         "model": settings.OPENAI_MODEL,
         "max_tokens": max_tokens,
         "messages": [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
+            {"role": "user", "content": user_content},
         ],
     }
     if forzar_json:
@@ -96,6 +108,30 @@ def generar_json_ia(system_prompt: str, user_prompt: str, max_tokens: int = 1500
         return json.loads(texto)
     except json.JSONDecodeError as e:
         logger.error(f"La IA no devolvió JSON válido: {texto[:500]}")
+        raise IANoDisponibleError(
+            f"La IA no devolvió una respuesta con formato válido: {str(e)}"
+        ) from e
+
+
+def generar_json_ia_vision(system_prompt: str, user_prompt: str, imagen_data_url: str,
+                           max_tokens: int = 1500):
+    """
+    Igual que generar_json_ia() pero adjuntando una IMAGEN para que la IA la
+    lea con visión (OCR). Usada por CU39 (facturas) y CU42 (etiquetas).
+
+    - imagen_data_url: data URL base64 que manda el frontend, con la forma
+      "data:image/jpeg;base64,....".
+    - Fuerza respuesta EXCLUSIVAMENTE en JSON (response_format) y la parsea.
+    """
+    texto = _llamar_openai(
+        system_prompt, user_prompt, max_tokens,
+        forzar_json=True, imagen_url=imagen_data_url,
+    )
+
+    try:
+        return json.loads(texto)
+    except json.JSONDecodeError as e:
+        logger.error(f"La IA (visión) no devolvió JSON válido: {texto[:500]}")
         raise IANoDisponibleError(
             f"La IA no devolvió una respuesta con formato válido: {str(e)}"
         ) from e

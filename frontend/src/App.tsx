@@ -114,6 +114,10 @@ import OrdenCompraList from "./pages/OrdenesCompra/OrdenCompraList";
 // CU38 - Generación de Recetas con IA
 import RecetasIA from "./pages/Menus/RecetasIA";
 
+// CU39/CU40/CU41 - Facturas con IA (OCR, conciliación, anomalías)
+import FacturaOCR from "./pages/Facturas/FacturaOCR";
+import FacturaList from "./pages/Facturas/FacturaList";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -233,6 +237,10 @@ const App = () => (
 
             {/* CU36 - Órdenes de Compra Automáticas (bajo Proveedores) */}
             <Route path="/ordenes-compra" element={<ProtectedRoute roles={["administrador", "gerente"]}><OrdenCompraList /></ProtectedRoute>} />
+
+            {/* CU39/CU40/CU41 - Facturas con IA (OCR, conciliación, anomalías) */}
+            <Route path="/facturas" element={<ProtectedRoute roles={["administrador", "gerente"]}><FacturaList /></ProtectedRoute>} />
+            <Route path="/facturas/escanear" element={<ProtectedRoute roles={["administrador", "gerente"]}><FacturaOCR /></ProtectedRoute>} />
 
 
           {/* Placeholders — módulos pendientes de implementación */}

@@ -9,6 +9,16 @@ from .orden_compra_views import (  # CU36 (Ciclo 5)
     OrdenCompraDetailView,
     GenerarOrdenesAutomaticasView,
 )
+from .factura_views import (  # CU39 / CU40 (Ciclo 6, visión IA)
+    FacturaOCRView,
+    FacturaListView,
+    FacturaDetailView,
+    ConciliarFacturaView,
+)
+from .etiqueta_views import EscanearEtiquetaView  # CU42 (Ciclo 6, visión IA)
+# CU41 vive en la app usuarios (paquete Seguridad) pero su ruta cuelga de
+# /api/facturas/ para mantener el módulo de facturas junto.
+from usuarios.factura_anomalias_views import DetectarFacturasAnomalasView
 
 router = DefaultRouter()
 router.register(r'lotes', views.LoteViewSet, basename='lote')
@@ -27,6 +37,20 @@ urlpatterns = [
     path('ordenes-compra/', OrdenCompraListView.as_view(), name='orden-compra-list'),
     path('ordenes-compra/generar/', GenerarOrdenesAutomaticasView.as_view(), name='orden-compra-generar'),
     path('ordenes-compra/<int:orden_id>/', OrdenCompraDetailView.as_view(), name='orden-compra-detail'),
+
+    # ============================================
+    #             ---- CICLO #6 (visión IA) ----
+    # ============================================
+    #--- CU39 OCR DE FACTURAS + CU40 CONCILIACIÓN ---
+    # IMPORTANTE: ocr/ va ANTES de <int:factura_id>/ para evitar conflicto
+    path('facturas/ocr/', FacturaOCRView.as_view(), name='factura-ocr'),
+    path('facturas/anomalias/', DetectarFacturasAnomalasView.as_view(), name='factura-anomalias'),
+    path('facturas/', FacturaListView.as_view(), name='factura-list'),
+    path('facturas/<int:factura_id>/', FacturaDetailView.as_view(), name='factura-detail'),
+    path('facturas/<int:factura_id>/conciliar/', ConciliarFacturaView.as_view(), name='factura-conciliar'),
+
+    #--- CU42 ESCANEO DE ETIQUETA → LOTE ---
+    path('etiquetas/escanear/', EscanearEtiquetaView.as_view(), name='etiqueta-escanear'),
 
     #--- CU17 GESTIONAR PROVEEDORES ---
     path('proveedores/', ProveedorListView.as_view(), name='proveedor-list'),

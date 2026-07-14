@@ -35,7 +35,7 @@ from nucleo.resend_utils import enviar_email
 logger = logging.getLogger(__name__)
 
 # Roles que reciben las notificaciones por correo
-ROLES_DESTINATARIOS = ['administrador', 'gerente', 'chef']
+ROLES_DESTINATARIOS = ['administrador', 'gerente', 'chef'] 
 # Ventana por defecto (días) para considerar un lote "próximo a vencer"
 DIAS_VENTANA_DEFAULT = 7
 
@@ -61,7 +61,7 @@ class RevisarNotificarView(APIView):
         # Ventana de días para lotes próximos a vencer
         try:
             dias = int(request.data.get('dias', DIAS_VENTANA_DEFAULT))
-            if dias < 0:
+            if dias < 0: 
                 dias = DIAS_VENTANA_DEFAULT
         except (TypeError, ValueError):
             dias = DIAS_VENTANA_DEFAULT
@@ -69,14 +69,14 @@ class RevisarNotificarView(APIView):
         try:
             supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
-            # 1) Alertas de stock pendientes (no leídas)
+            # Alertas de stock pendientes
             alertas_res = supabase.table('alertas_stock').select(
                 'id, mensaje, fecha, stock:stock_id(cantidad, stock_min, insumo:insumo_id(nombre))'
             ).eq('leida', False).order('fecha', desc=True).execute()
             alertas = alertas_res.data or []
 
-            # 2) Lotes próximos a vencer (o ya vencidos) dentro de la ventana
-            hoy = date.today()
+            #Lotes próximos a vencer (o ya vencidos) dentro de la ventana
+            hoy = date.today()      
             limite = (hoy + timedelta(days=dias)).isoformat()
             lotes_res = supabase.table('detalle_lote').select(
                 'id, fecha_vencimiento, cantidad, insumo:insumo_id(nombre)'

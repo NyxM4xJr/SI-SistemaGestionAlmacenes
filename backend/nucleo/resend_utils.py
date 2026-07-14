@@ -54,7 +54,7 @@ def enviar_email(destinatarios, asunto, cuerpo_texto, cuerpo_html=None):
     fallidos = []
 
     for destinatario in destinatarios:
-        try:
+        try:    
             payload = {
                 "from": remitente,
                 "to": [destinatario],

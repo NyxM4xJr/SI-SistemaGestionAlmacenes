@@ -75,10 +75,20 @@ class LoteViewSet(viewsets.ViewSet):
                 cantidad = detalle.get('cantidad')
                 costo_unitario = detalle.get('costo_unitario')
                 
-                insumo = self.supabase.table('insumo').select('vencimiento_dias').eq('id', insumo_id).execute()
-                vencimiento_dias = insumo.data[0]['vencimiento_dias']
-                fecha_venc = date.fromisoformat(fecha_ing) + timedelta(days=vencimiento_dias)
-                
+                # CU42: si el frontend envía una fecha_vencimiento (escaneada de
+                # la etiqueta con IA), se usa esa; si no, se calcula desde los
+                # días de vida útil del insumo (comportamiento original).
+                fecha_venc_manual = detalle.get('fecha_vencimiento')
+                if fecha_venc_manual:
+                    try:
+                        fecha_venc = date.fromisoformat(str(fecha_venc_manual))
+                    except ValueError:
+                        fecha_venc_manual = None
+                if not fecha_venc_manual:
+                    insumo = self.supabase.table('insumo').select('vencimiento_dias').eq('id', insumo_id).execute()
+                    vencimiento_dias = insumo.data[0]['vencimiento_dias']
+                    fecha_venc = date.fromisoformat(fecha_ing) + timedelta(days=vencimiento_dias)
+
                 # Insertar detalle con SQL directo
                 sql = f"""
                     INSERT INTO detalle_lote (lote_id, insumo_id, stock_id, cantidad, costo_unitario, fecha_vencimiento)

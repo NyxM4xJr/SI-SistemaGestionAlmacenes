@@ -247,6 +247,12 @@ export const menuConfig: MenuNode[] = [
         roles: ["administrador", "gerente"],
       },
       {
+        id: "cu39",
+        label: "Facturas (IA)",
+        path: "/facturas",
+        roles: ["administrador", "gerente"],
+      },
+      {
         id: "cu31-deposito",
         label: "Depositar Fondos",
         path: "/pagos/depositar",
