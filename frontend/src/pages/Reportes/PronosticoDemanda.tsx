@@ -24,10 +24,12 @@ export default function PronosticoDemanda() {
   const [dias, setDias] = useState(30);
   const [data, setData] = useState<PronosticoResponse | null>(null);
   const [cargando, setCargando] = useState(true);
+  const [verDetalle, setVerDetalle] = useState(false);
 
   const cargar = useCallback(async (ventana: number) => {
     try {
       setCargando(true);
+      setVerDetalle(false);
       setData(await getPronosticoDemanda(ventana));
     } catch (e) {
       toast.error((e as Error).message || "Error al generar el pronóstico.");
@@ -39,6 +41,10 @@ export default function PronosticoDemanda() {
   useEffect(() => {
     cargar(dias);
   }, [cargar, dias]);
+
+  const items = data?.pronostico || [];
+  const urgentes = items.filter((p) => p.urgente).length;
+  const aReponer = items.filter((p) => p.cantidad_sugerida > 0).length;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -70,11 +76,43 @@ export default function PronosticoDemanda() {
           </div>
         </div>
 
-        {/* Resumen IA */}
-        {data?.resumen_ia && (
+        {/* Tarjetas de datos directos */}
+        {!cargando && items.length > 0 && (
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+              <p className="text-3xl font-bold text-gray-900">{items.length}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Insumos analizados</p>
+            </div>
+            <div className="bg-white rounded-xl border border-red-200 p-4 text-center">
+              <p className="text-3xl font-bold text-red-600">{urgentes}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Urgentes (&lt;7 días)</p>
+            </div>
+            <div className="bg-white rounded-xl border border-orange-200 p-4 text-center">
+              <p className="text-3xl font-bold text-orange-500">{aReponer}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">A reponer</p>
+            </div>
+          </div>
+        )}
+
+        {/* Resumen IA — corto con opción de ver el detalle */}
+        {!cargando && data?.resumen && (
           <div className="bg-white rounded-xl shadow-sm border border-orange-200 p-5 mb-6">
-            <h2 className="font-semibold text-gray-800 mb-2">Resumen del analista (IA)</h2>
-            <p className="text-sm text-gray-700 whitespace-pre-line">{data.resumen_ia}</p>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-semibold text-gray-800">
+                {verDetalle ? "Análisis detallado (IA)" : "Resumen del analista (IA)"}
+              </h2>
+              {data.detalle && data.detalle !== data.resumen && (
+                <button
+                  onClick={() => setVerDetalle((v) => !v)}
+                  className="text-sm font-medium text-orange-600 hover:text-orange-800"
+                >
+                  {verDetalle ? "Ver menos" : "Ver más"}
+                </button>
+              )}
+            </div>
+            <p className="text-sm text-gray-700 whitespace-pre-line">
+              {verDetalle ? data.detalle : data.resumen}
+            </p>
           </div>
         )}
 

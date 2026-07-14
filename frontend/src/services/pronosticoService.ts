@@ -28,7 +28,8 @@ export interface ItemPronostico {
 
 export interface PronosticoResponse {
   pronostico: ItemPronostico[];
-  resumen_ia: string;
+  resumen: string;
+  detalle: string;
   dias_analizados: number;
   generado_en: string;
 }

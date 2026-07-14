@@ -30,7 +30,7 @@ from supabase import create_client
 from django.conf import settings
 
 from bitacora.utils import registrar_accion, obtener_ip_cliente
-from nucleo.openai_utils import generar_texto_ia, IANoDisponibleError
+from nucleo.openai_utils import generar_json_ia, IANoDisponibleError
 
 logger = logging.getLogger(__name__)
 
@@ -43,10 +43,16 @@ SYSTEM_PROMPT_PRONOSTICO = (
     "Sos un analista de abastecimiento de un almacén gastronómico. Te paso, "
     "en JSON, un pronóstico YA calculado por insumo: consumo diario promedio, "
     "stock actual, días de cobertura restantes y cantidad sugerida a pedir. "
-    "Redactá un resumen breve (máx. 120 palabras), en español, texto plano sin "
-    "Markdown, priorizando primero los insumos que se agotan antes. No "
-    "inventes ni recalcules cifras: usá solo las que están en los datos. Si "
-    "nada es urgente, decilo en una frase."
+    "Priorizá primero los insumos que se agotan antes. No inventes ni "
+    "recalcules cifras: usá solo las que están en los datos.\n\n"
+    "Respondé EXCLUSIVAMENTE con JSON válido, sin texto antes ni después, con "
+    "esta forma exacta:\n"
+    '{"resumen": str, "detalle": str}\n'
+    "- 'resumen': 1 o 2 frases directas (máx. 40 palabras) diciendo qué pedir "
+    "con urgencia.\n"
+    "- 'detalle': análisis completo (máx. 120 palabras).\n"
+    "Ambos en español, texto plano sin Markdown. Si nada es urgente, decilo en "
+    "una frase en ambos campos."
 )
 
 
@@ -155,14 +161,15 @@ class PronosticoDemandaView(APIView):
             )
 
         if not pronostico:
-            resumen = f'No hay consumo (salidas) registrado en los últimos {dias} días para proyectar demanda.'
+            msg = f'No hay consumo (salidas) registrado en los últimos {dias} días para proyectar demanda.'
+            resumen = detalle = msg
         else:
             try:
                 # Solo se le pasan a la IA los más relevantes (los primeros 15).
-                resumen = generar_texto_ia(
+                resultado = generar_json_ia(
                     SYSTEM_PROMPT_PRONOSTICO,
                     f"Ventana: {dias} días.\nPronóstico:\n{pronostico[:15]}",
-                    max_tokens=400,
+                    max_tokens=500,
                 )
             except IANoDisponibleError as e:
                 logger.error(f"IA no disponible para CU44: {str(e)}")
@@ -170,6 +177,10 @@ class PronosticoDemandaView(APIView):
                     {'error': f'El agente de IA no está disponible: {str(e)}'},
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
+            resumen = (resultado.get('resumen') or '').strip() if isinstance(resultado, dict) else ''
+            detalle = (resultado.get('detalle') or '').strip() if isinstance(resultado, dict) else ''
+            resumen = resumen or detalle
+            detalle = detalle or resumen
 
         ip_cliente = obtener_ip_cliente(request)
         registrar_accion(
@@ -185,7 +196,8 @@ class PronosticoDemandaView(APIView):
 
         return Response({
             'pronostico': pronostico,
-            'resumen_ia': resumen,
+            'resumen': resumen,
+            'detalle': detalle,
             'dias_analizados': dias,
             'generado_en': date.today().isoformat(),
         }, status=status.HTTP_200_OK)

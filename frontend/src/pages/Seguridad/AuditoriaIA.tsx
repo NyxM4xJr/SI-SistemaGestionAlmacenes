@@ -21,10 +21,12 @@ import { getAuditoriaIA, type AuditoriaResponse } from "@/services/auditoriaIASe
 export default function AuditoriaIA() {
   const [data, setData] = useState<AuditoriaResponse | null>(null);
   const [cargando, setCargando] = useState(true);
+  const [verDetalle, setVerDetalle] = useState(false);
 
   const cargar = useCallback(async () => {
     try {
       setCargando(true);
+      setVerDetalle(false);
       setData(await getAuditoriaIA());
     } catch (e) {
       toast.error((e as Error).message || "Error al generar la auditoría.");
@@ -67,10 +69,24 @@ export default function AuditoriaIA() {
           </div>
         ) : (
           <>
-            {/* Informe IA */}
+            {/* Informe IA — resumen con opción de ver el detalle */}
             <div className="bg-white rounded-xl shadow-sm border border-indigo-200 p-5 mb-6">
-              <h2 className="font-semibold text-gray-800 mb-2">Informe ejecutivo</h2>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{data?.informe}</p>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="font-semibold text-gray-800">
+                  {verDetalle ? "Informe detallado" : "Resumen ejecutivo"}
+                </h2>
+                {data?.detalle && data.detalle !== data.resumen && (
+                  <button
+                    onClick={() => setVerDetalle((v) => !v)}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                  >
+                    {verDetalle ? "Ver menos" : "Ver más"}
+                  </button>
+                )}
+              </div>
+              <p className="text-sm text-gray-700 whitespace-pre-line">
+                {verDetalle ? data?.detalle : data?.resumen}
+              </p>
             </div>
 
             {/* Señales */}

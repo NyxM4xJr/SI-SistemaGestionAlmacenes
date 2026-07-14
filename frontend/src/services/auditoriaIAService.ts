@@ -23,7 +23,8 @@ export interface SenalesAuditoria {
 }
 
 export interface AuditoriaResponse {
-  informe: string;
+  resumen: string;
+  detalle: string;
   senales: SenalesAuditoria;
 }
 

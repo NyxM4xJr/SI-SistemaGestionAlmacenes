@@ -31,7 +31,7 @@ from supabase import create_client
 from django.conf import settings
 
 from bitacora.utils import registrar_accion, obtener_ip_cliente
-from nucleo.openai_utils import generar_texto_ia, IANoDisponibleError
+from nucleo.openai_utils import generar_json_ia, IANoDisponibleError
 
 logger = logging.getLogger(__name__)
 
@@ -46,11 +46,17 @@ SYSTEM_PROMPT_AUDITORIA = (
     "en JSON, señales YA calculadas sobre la actividad reciente del sistema: "
     "intentos de login fallidos/bloqueos por usuario, cambios de rol, "
     "activaciones/desactivaciones de cuentas y los usuarios más activos. "
-    "Redactá un informe ejecutivo breve (máx. 120 palabras), en español, en "
-    "texto plano sin Markdown, priorizando lo más riesgoso primero (por "
-    "ejemplo muchos intentos fallidos de un mismo usuario, o cambios de rol "
-    "inesperados). No inventes cifras ni usuarios que no estén en los datos; "
-    "si todo luce normal, decilo con una sola frase."
+    "Priorizá lo más riesgoso primero (muchos intentos fallidos de un mismo "
+    "usuario, cambios de rol inesperados). No inventes cifras ni usuarios que "
+    "no estén en los datos.\n\n"
+    "Respondé EXCLUSIVAMENTE con JSON válido, sin texto antes ni después, con "
+    "esta forma exacta:\n"
+    '{"resumen": str, "detalle": str}\n'
+    "- 'resumen': 1 o 2 frases directas (máx. 40 palabras) con lo más "
+    "importante a accionar.\n"
+    "- 'detalle': informe ejecutivo completo (máx. 120 palabras).\n"
+    "Ambos en español, texto plano sin Markdown. Si todo luce normal, decilo "
+    "en una sola frase en ambos campos."
 )
 
 
@@ -162,16 +168,16 @@ class AuditoriaBitacoraIAView(APIView):
 
         # Si no hay actividad sensible, no se llama a la IA (ahorra costo).
         if not registros:
-            informe = 'No hay actividad registrada para auditar.'
+            resumen = detalle = 'No hay actividad registrada para auditar.'
         elif not hay_riesgo:
-            informe = ('Actividad normal: no se detectaron intentos de acceso '
-                       'fallidos ni cambios sensibles en el período reciente.')
+            resumen = detalle = ('Actividad normal: no se detectaron intentos de '
+                                 'acceso fallidos ni cambios sensibles recientes.')
         else:
             try:
-                informe = generar_texto_ia(
+                resultado = generar_json_ia(
                     SYSTEM_PROMPT_AUDITORIA,
                     f"Señales de auditoría:\n{senales}",
-                    max_tokens=400,
+                    max_tokens=500,
                 )
             except IANoDisponibleError as e:
                 logger.error(f"IA no disponible para CU43: {str(e)}")
@@ -179,6 +185,11 @@ class AuditoriaBitacoraIAView(APIView):
                     {'error': f'El agente de IA no está disponible: {str(e)}'},
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
+            resumen = (resultado.get('resumen') or '').strip() if isinstance(resultado, dict) else ''
+            detalle = (resultado.get('detalle') or '').strip() if isinstance(resultado, dict) else ''
+            # Respaldo: si la IA omitió alguno, se usa el otro.
+            resumen = resumen or detalle
+            detalle = detalle or resumen
 
         ip_cliente = obtener_ip_cliente(request)
         registrar_accion(
@@ -192,4 +203,7 @@ class AuditoriaBitacoraIAView(APIView):
             },
         )
 
-        return Response({'informe': informe, 'senales': senales}, status=status.HTTP_200_OK)
+        return Response(
+            {'resumen': resumen, 'detalle': detalle, 'senales': senales},
+            status=status.HTTP_200_OK,
+        )
