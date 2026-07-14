@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { TrendingUp, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -53,14 +53,7 @@ export default function PronosticoDemanda() {
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-6 w-6 text-orange-500" />
-              <h1 className="text-2xl font-bold text-gray-900">Pronóstico de Demanda</h1>
-            </div>
-            <p className="text-gray-500 mt-1">
-              Proyección de consumo por insumo según el histórico de salidas.
-              Muestra cuántos días de cobertura quedan y cuánto conviene pedir.
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">Pronóstico de Demanda</h1>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <label className="text-sm text-gray-500">Ventana:</label>

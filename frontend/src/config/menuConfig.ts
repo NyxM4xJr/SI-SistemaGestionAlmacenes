@@ -72,7 +72,7 @@ export const menuConfig: MenuNode[] = [
       },
       {
         id: "cu43",
-        label: "Auditoría Inteligente (IA)",
+        label: "Auditoría Inteligente",
         path: "/auditoria-ia",
         roles: ["administrador", "gerente"],
       },
@@ -168,7 +168,7 @@ export const menuConfig: MenuNode[] = [
       },
       {
         id: "cu42",
-        label: "Recepción de Mercadería (IA)",
+        label: "Recepción de Mercadería",
         path: "/recepcion",
         roles: ["administrador", "chef"],
       },
@@ -260,7 +260,7 @@ export const menuConfig: MenuNode[] = [
       },
       {
         id: "cu39",
-        label: "Facturas (IA)",
+        label: "Escanear Facturas",
         path: "/facturas",
         roles: ["administrador", "gerente"],
       },

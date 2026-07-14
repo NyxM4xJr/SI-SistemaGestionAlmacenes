@@ -15,7 +15,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, ScanText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 
 import AppHeader from "@/components/AppHeader";
 import CapturaImagen from "@/components/CapturaImagen";
@@ -148,14 +148,7 @@ export default function FacturaOCR() {
         </Button>
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <ScanText className="h-6 w-6 text-indigo-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Escanear factura con IA</h1>
-          </div>
-          <p className="text-gray-500">
-            Sacá una foto o subí la imagen de la factura del proveedor. La IA
-            extrae los datos y vos los revisás antes de guardar.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">Escanear Factura</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

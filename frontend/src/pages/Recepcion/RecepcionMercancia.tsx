@@ -14,7 +14,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, ScanLine, Save, Trash2, PackageCheck } from "lucide-react";
+import { ArrowLeft, ScanLine, Save, Trash2 } from "lucide-react";
 
 import AppHeader from "@/components/AppHeader";
 import CapturaImagen from "@/components/CapturaImagen";
@@ -159,14 +159,7 @@ export default function RecepcionMercancia() {
         </Button>
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <PackageCheck className="h-6 w-6 text-indigo-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Recepción de Mercadería (IA)</h1>
-          </div>
-          <p className="text-gray-500">
-            Escaneá el remito de la entrega y la IA precarga todo el lote. Solo
-            asignás la ubicación de cada insumo y confirmás.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">Recepción de Mercadería</h1>
         </div>
 
         {!extraido ? (

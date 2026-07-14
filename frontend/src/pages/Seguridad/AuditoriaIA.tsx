@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ShieldCheck, AlertTriangle, Activity, KeyRound } from "lucide-react";
+import { AlertTriangle, Activity, KeyRound } from "lucide-react";
 
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -48,14 +48,7 @@ export default function AuditoriaIA() {
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="h-6 w-6 text-indigo-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Auditoría Inteligente (IA)</h1>
-            </div>
-            <p className="text-gray-500 mt-1">
-              La IA resume la actividad reciente del sistema y marca patrones
-              sospechosos, a partir de la bitácora.
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">Auditoría Inteligente</h1>
           </div>
           <Button variant="outline" onClick={cargar} disabled={cargando} className="rounded-xl h-11 shrink-0">
             {cargando ? "Analizando..." : "Volver a analizar"}
