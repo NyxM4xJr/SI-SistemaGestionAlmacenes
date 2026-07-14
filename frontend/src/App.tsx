@@ -118,6 +118,13 @@ import RecetasIA from "./pages/Menus/RecetasIA";
 import FacturaOCR from "./pages/Facturas/FacturaOCR";
 import FacturaList from "./pages/Facturas/FacturaList";
 
+// CU42 - Recepción de Lote Asistida por IA
+import RecepcionMercancia from "./pages/Recepcion/RecepcionMercancia";
+// CU43 - Auditoría Inteligente de Bitácora
+import AuditoriaIA from "./pages/Seguridad/AuditoriaIA";
+// CU44 - Pronóstico de Demanda
+import PronosticoDemanda from "./pages/Reportes/PronosticoDemanda";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -241,6 +248,15 @@ const App = () => (
             {/* CU39/CU40/CU41 - Facturas con IA (OCR, conciliación, anomalías) */}
             <Route path="/facturas" element={<ProtectedRoute roles={["administrador", "gerente"]}><FacturaList /></ProtectedRoute>} />
             <Route path="/facturas/escanear" element={<ProtectedRoute roles={["administrador", "gerente"]}><FacturaOCR /></ProtectedRoute>} />
+
+            {/* CU42 - Recepción de Lote Asistida por IA */}
+            <Route path="/recepcion" element={<ProtectedRoute roles={["administrador", "chef"]}><RecepcionMercancia /></ProtectedRoute>} />
+
+            {/* CU43 - Auditoría Inteligente de Bitácora */}
+            <Route path="/auditoria-ia" element={<ProtectedRoute roles={["administrador", "gerente"]}><AuditoriaIA /></ProtectedRoute>} />
+
+            {/* CU44 - Pronóstico de Demanda */}
+            <Route path="/reportes/pronostico" element={<ProtectedRoute roles={["administrador", "gerente"]}><PronosticoDemanda /></ProtectedRoute>} />
 
 
           {/* Placeholders — módulos pendientes de implementación */}

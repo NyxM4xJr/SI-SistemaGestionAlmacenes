@@ -15,7 +15,7 @@ from .factura_views import (  # CU39 / CU40 (Ciclo 6, visión IA)
     FacturaDetailView,
     ConciliarFacturaView,
 )
-from .etiqueta_views import EscanearEtiquetaView  # CU42 (Ciclo 6, visión IA)
+from .recepcion_views import RecepcionRemitoView  # CU42 (Ciclo 6, visión IA)
 # CU41 vive en la app usuarios (paquete Seguridad) pero su ruta cuelga de
 # /api/facturas/ para mantener el módulo de facturas junto.
 from usuarios.factura_anomalias_views import DetectarFacturasAnomalasView
@@ -24,6 +24,10 @@ router = DefaultRouter()
 router.register(r'lotes', views.LoteViewSet, basename='lote')
 
 urlpatterns = [
+    # CU42: debe ir ANTES del router de 'lotes', si no el router captura
+    # "recepcion-remito" como si fuera el id de un lote.
+    path('lotes/recepcion-remito/', RecepcionRemitoView.as_view(), name='recepcion-remito'),
+
     path('', include(router.urls)),
 
     # ============================================
@@ -48,9 +52,6 @@ urlpatterns = [
     path('facturas/', FacturaListView.as_view(), name='factura-list'),
     path('facturas/<int:factura_id>/', FacturaDetailView.as_view(), name='factura-detail'),
     path('facturas/<int:factura_id>/conciliar/', ConciliarFacturaView.as_view(), name='factura-conciliar'),
-
-    #--- CU42 ESCANEO DE ETIQUETA → LOTE ---
-    path('etiquetas/escanear/', EscanearEtiquetaView.as_view(), name='etiqueta-escanear'),
 
     #--- CU17 GESTIONAR PROVEEDORES ---
     path('proveedores/', ProveedorListView.as_view(), name='proveedor-list'),

@@ -64,6 +64,8 @@ from .pago_views import (  # CU31
 from .notificacion_views import RevisarNotificarView  # CU33 (Ciclo 5)
 from .briefing_ia_views import BriefingIAView  # CU37 (Ciclo 5)
 from .receta_ia_views import SugerirRecetaIAView  # CU38 (Ciclo 5)
+from .auditoria_ia_views import AuditoriaBitacoraIAView  # CU43 (Ciclo 6)
+from .pronostico_views import PronosticoDemandaView  # CU44 (Ciclo 6)
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -194,6 +196,12 @@ urlpatterns = [
 
     # ---- CU37 BRIEFING EJECUTIVO PROACTIVO CON IA ----
     path('briefing-ia/', BriefingIAView.as_view(), name='briefing-ia'),
+
+    # ---- CU43 AUDITORÍA INTELIGENTE DE BITÁCORA ----
+    path('auditoria-ia/', AuditoriaBitacoraIAView.as_view(), name='auditoria-ia'),
+
+    # ---- CU44 PRONÓSTICO DE DEMANDA ----
+    path('reportes/pronostico/', PronosticoDemandaView.as_view(), name='reporte-pronostico'),
 
     # ---- CU38 GENERACIÓN DE RECETAS CON IA ----
     path('recetas-ia/generar/', SugerirRecetaIAView.as_view(), name='recetas-ia-generar'),

@@ -70,6 +70,12 @@ export const menuConfig: MenuNode[] = [
         path: "/bitacora",
         roles: ["administrador", "gerente"],
       },
+      {
+        id: "cu43",
+        label: "Auditoría Inteligente (IA)",
+        path: "/auditoria-ia",
+        roles: ["administrador", "gerente"],
+      },
     ],
   },
 
@@ -158,6 +164,12 @@ export const menuConfig: MenuNode[] = [
         id: "cu34",
         label: "Caducidad de Lotes",
         path: "/caducidad",
+        roles: ["administrador", "chef"],
+      },
+      {
+        id: "cu42",
+        label: "Recepción de Mercadería (IA)",
+        path: "/recepcion",
         roles: ["administrador", "chef"],
       },
     ],
@@ -301,6 +313,12 @@ export const menuConfig: MenuNode[] = [
         id: "cu29",
         label: "Dashboard de KPIs",
         path: "/dashboard",
+        roles: ["administrador", "gerente"],
+      },
+      {
+        id: "cu44",
+        label: "Pronóstico de Demanda",
+        path: "/reportes/pronostico",
         roles: ["administrador", "gerente"],
       },
     ],

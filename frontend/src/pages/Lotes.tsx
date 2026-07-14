@@ -15,13 +15,11 @@ import { Insumo, insumoService } from '@/services/insumoServices';
 import { Stock, StockService } from '@/services/StockServices';
 import {
   PlusCircle, Search, Package, Calendar, MapPin, Building2, Trash2,
-  ArrowLeft, Save, AlertCircle, FileText, ScanLine, X
+  ArrowLeft, Save, AlertCircle, FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import CapturaImagen from '@/components/CapturaImagen';
-import { escanearEtiqueta } from '@/services/etiquetaService';
 import {
   Select,
   SelectContent,
@@ -75,11 +73,6 @@ export default function Lotes() {
     { insumo_id: '', stock_id: '', cantidad: '', costo_unitario: '' }
   ]);
   const [saving, setSaving] = useState(false);
-
-  // CU42: escaneo de etiqueta con IA. Guarda el índice de la fila cuya
-  // etiqueta se está escaneando (null = modal cerrado) y el estado de carga.
-  const [escaneandoRow, setEscaneandoRow] = useState<number | null>(null);
-  const [procesandoEtiqueta, setProcesandoEtiqueta] = useState(false);
 
   // List State
   const [expandedLoteId, setExpandedLoteId] = useState<number | null>(null);
@@ -261,32 +254,6 @@ export default function Lotes() {
     }
     
     setDetalles(nuevosDetalles);
-  };
-
-  // CU42: procesa la foto de la etiqueta, extrae vencimiento/lote con IA y
-  // precarga la fecha de vencimiento en la fila correspondiente.
-  const procesarEtiqueta = async (dataUrl: string) => {
-    if (escaneandoRow === null) return;
-    try {
-      setProcesandoEtiqueta(true);
-      const datos = await escanearEtiqueta(dataUrl);
-      if (!datos.fecha_vencimiento && !datos.numero_lote) {
-        toast.warning("La IA no pudo leer datos de la etiqueta. Probá con otra foto.");
-        return;
-      }
-      if (datos.fecha_vencimiento) {
-        actualizarDetalle(escaneandoRow, 'fecha_vencimiento', datos.fecha_vencimiento);
-      }
-      toast.success(
-        `Etiqueta leída${datos.numero_lote ? ` · Lote ${datos.numero_lote}` : ''}` +
-        `${datos.fecha_vencimiento ? ` · Vence ${datos.fecha_vencimiento}` : ''}`
-      );
-      setEscaneandoRow(null);
-    } catch (error: unknown) {
-      toast.error((error as Error).message || "Error al escanear la etiqueta.");
-    } finally {
-      setProcesandoEtiqueta(false);
-    }
   };
 
   const calcularTotalLote = () => {
@@ -602,7 +569,7 @@ export default function Lotes() {
                           </Button>
                         </div>
 
-                        {/* CU42: vencimiento (escaneable con IA) */}
+                        {/* Vencimiento (opcional; también lo precarga la Recepción por IA) */}
                         <div className="col-span-12 flex flex-wrap items-end gap-3 pt-3 mt-1 border-t border-gray-200">
                           <div className="flex-1 min-w-[160px]">
                             <Label className="text-xs text-gray-500 uppercase tracking-wider mb-2 block">
@@ -615,15 +582,6 @@ export default function Lotes() {
                               className="bg-white"
                             />
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setEscaneandoRow(index)}
-                            className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-                          >
-                            <ScanLine className="w-4 h-4 mr-2" />
-                            Escanear etiqueta (IA)
-                          </Button>
                         </div>
                       </div>
                     );
@@ -777,39 +735,6 @@ export default function Lotes() {
               ))}
             </div>
           )
-        )}
-
-        {/* CU42: modal de escaneo de etiqueta con IA */}
-        {escaneandoRow !== null && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                  <ScanLine className="w-5 h-5 text-indigo-600" />
-                  Escanear etiqueta del producto
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setEscaneandoRow(null)}
-                  disabled={procesandoEtiqueta}
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-              <div className="p-5">
-                <p className="text-sm text-gray-500 mb-4">
-                  Apuntá a la etiqueta con la fecha de vencimiento. La IA la leerá
-                  y precargará el vencimiento de esta fila.
-                </p>
-                <CapturaImagen
-                  onCaptura={procesarEtiqueta}
-                  etiquetaAccion="Leer etiqueta"
-                  procesando={procesandoEtiqueta}
-                />
-              </div>
-            </div>
-          </div>
         )}
       </main>
     </div>
