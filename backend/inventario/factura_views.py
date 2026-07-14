@@ -425,6 +425,19 @@ class ConciliarFacturaView(APIView):
         except Exception as e:
             logger.error(f"Error actualizando estado de conciliación: {str(e)}")
 
+        # Conciliar implica que la mercadería llegó: la orden se marca como
+        # 'recibida' automáticamente (salvo que estuviera cancelada), para no
+        # tener que apretar además "Marcar recibida" a mano.
+        orden_recibida = False
+        try:
+            if orden.get('estado') != 'cancelada':
+                supabase.table('orden_compra').update(
+                    {'estado': 'recibida'}
+                ).eq('id', orden_id).execute()
+                orden_recibida = True
+        except Exception as e:
+            logger.error(f"Error marcando la orden {orden_id} como recibida: {str(e)}")
+
         ip_cliente = obtener_ip_cliente(request)
         registrar_accion(
             usuario_id=str(request.user.id),
@@ -436,6 +449,7 @@ class ConciliarFacturaView(APIView):
                 'orden_id': orden_id,
                 'estado': nuevo_estado,
                 'diferencias': len(diferencias),
+                'orden_recibida': orden_recibida,
             },
         )
 
@@ -444,4 +458,5 @@ class ConciliarFacturaView(APIView):
             'coincide': coincide,
             'diferencias': diferencias,
             'resumen': resultado.get('resumen', '') if isinstance(resultado, dict) else '',
+            'orden_recibida': orden_recibida,
         }, status=status.HTTP_200_OK)

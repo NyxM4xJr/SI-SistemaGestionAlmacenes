@@ -76,6 +76,7 @@ export interface ResultadoConciliacion {
   coincide: boolean;
   diferencias: DiferenciaConciliacion[];
   resumen: string;
+  orden_recibida: boolean;
 }
 
 export interface GuardarFacturaPayload {

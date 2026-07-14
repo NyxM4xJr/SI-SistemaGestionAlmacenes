@@ -91,11 +91,11 @@ export default function FacturaList() {
       setConciliando(facturaId);
       const res = await conciliarFactura(facturaId, Number(ordenId));
       setResultado((prev) => ({ ...prev, [facturaId]: res }));
-      toast.success(
+      const base =
         res.coincide && res.diferencias.length === 0
           ? "La factura coincide con la orden."
-          : `Se detectaron ${res.diferencias.length} diferencia(s).`
-      );
+          : `Se detectaron ${res.diferencias.length} diferencia(s).`;
+      toast.success(res.orden_recibida ? `${base} La orden se marcó como recibida.` : base);
       cargar();
     } catch (e) {
       toast.error((e as Error).message || "Error al conciliar.");
