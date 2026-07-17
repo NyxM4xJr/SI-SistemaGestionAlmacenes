@@ -7,9 +7,10 @@
 #   Prepara un escenario CONTROLADO y REPETIBLE para la demo de
 #   conciliación factura↔orden. Deja los datos listos para que, al
 #   apretar "Generar automáticas" (CU36), el botón cree EXACTAMENTE
-#   dos órdenes de compra:
+#   tres órdenes de compra:
 #     - Distribuidora del Sur → 4 insumos
 #     - Comercial Andina      → 3 insumos
+#     - Almacén del Norte      → 2 insumos
 #   con cantidades y precios distintos y deterministas.
 #
 #   La lógica de CU36 no se toca: solo se siembran los datos (stock bajo
@@ -19,7 +20,7 @@
 #
 #   Con --aislar (activo por defecto) sube por encima del mínimo el stock
 #   de CUALQUIER otro insumo que esté bajo mínimo, para que el botón
-#   genere ÚNICAMENTE estas dos órdenes y la demo quede limpia.
+#   genere ÚNICAMENTE estas tres órdenes y la demo quede limpia.
 #
 #   Es idempotente. USO:
 #     python manage.py seed_conciliacion_demo
@@ -37,6 +38,7 @@ EMAIL_DEMO = "adalidgragedrojas@gmail.com"
 PROVEEDORES = [
     ("Distribuidora del Sur", EMAIL_DEMO),
     ("Comercial Andina", EMAIL_DEMO),
+    ("Almacén del Norte", EMAIL_DEMO),
 ]
 
 # (insumo, categoria, venc_dias, proveedor, precio, cantidad, stock_min, stock_max)
@@ -52,16 +54,23 @@ ITEMS = [
     ("Aceite Vegetal 5L",  "Abarrote",365, "Comercial Andina",      42.00,  3,  8, 18),  # pide 15
     ("Sal Fina 1kg",       "Abarrote",730, "Comercial Andina",       6.50,  6, 20, 46),  # pide 40
     ("Azúcar Blanca 1kg",  "Abarrote",730, "Comercial Andina",       7.00, 10, 25, 45),  # pide 35
+    # ── Orden C: Almacén del Norte (2 insumos) ──
+    ("Fideo Spaghetti 500g","Abarrote",540, "Almacén del Norte",     5.50,  6, 15, 36),  # pide 30
+    ("Atún en Lata 170g",   "Abarrote",900, "Almacén del Norte",     9.00,  8, 20, 44),  # pide 36
 ]
 
 
 class Command(BaseCommand):
-    help = "Prepara 2 proveedores + 7 insumos bajo mínimo para que 'Generar automáticas' cree 2 órdenes (4+3)."
+    help = "Prepara 3 proveedores + 9 insumos bajo mínimo para que 'Generar automáticas' cree 3 órdenes (4+3+2)."
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--no-aislar", action="store_false", dest="aislar",
             help="No subir el stock de otros insumos bajo mínimo (puede generar órdenes extra).",
+        )
+        parser.add_argument(
+            "--no-limpiar-ordenes", action="store_false", dest="limpiar_ordenes",
+            help="No borrar las órdenes viejas de los proveedores demo (se acumularían duplicadas).",
         )
 
     def handle(self, *args, **options):
@@ -71,6 +80,12 @@ class Command(BaseCommand):
         ))
 
         proveedores = self._seed_proveedores()
+
+        # Borra las órdenes viejas de estos proveedores para que "Generar
+        # automáticas" no acumule duplicados en cada corrida de la demo.
+        if options["limpiar_ordenes"]:
+            self._limpiar_ordenes_demo(proveedores)
+
         insumos = self._seed_insumos_y_stock()
         self._seed_proveedor_insumo(insumos, proveedores)
 
@@ -97,6 +112,35 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"  + proveedor: {nombre}"))
             res[nombre] = pid
         return res
+
+    # ── Limpiar órdenes viejas de los proveedores demo ───────
+    def _limpiar_ordenes_demo(self, proveedores):
+        ids = list(proveedores.values())
+        if not ids:
+            return
+        ordenes = (
+            self.sb.table("orden_compra").select("id")
+            .in_("proveedor_id", ids).execute()
+        )
+        orden_ids = [o["id"] for o in (ordenes.data or [])]
+        if not orden_ids:
+            self.stdout.write("  limpieza: no había órdenes previas de estos proveedores.")
+            return
+
+        # 1) Desvincular las facturas que apuntaban a esas órdenes (evita
+        #    romper la relación factura→orden al borrarlas).
+        try:
+            self.sb.table("factura").update({"orden_id": None}).in_(
+                "orden_id", orden_ids
+            ).execute()
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f"  (aviso) no se pudo desvincular facturas: {e}"))
+
+        # 2) Borrar las órdenes (detalle_orden_compra cae en cascada).
+        self.sb.table("orden_compra").delete().in_("proveedor_id", ids).execute()
+        self.stdout.write(self.style.WARNING(
+            f"  limpieza: borré {len(orden_ids)} orden(es) vieja(s) de los proveedores demo."
+        ))
 
     # ── Insumos + stock (bajo mínimo) ────────────────────────
     def _seed_insumos_y_stock(self):
