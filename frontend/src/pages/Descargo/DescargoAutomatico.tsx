@@ -11,8 +11,7 @@
  * vía estado de navegación de React Router ({horaDesde, horaHasta,
  * ventas}). NO se vuelve a pedir esos datos al Chef.
  *
- * Flujo de 2 pasos (F1 alt / F3 loop+F4 alt / F5 critical, ver
- * CICLO4_DIAGRAMS_SPEC_MATEO.md):
+ * Flujo de 2 pasos (F1 alt / F3 loop+F4 alt / F5 critical):
  * 1. Al montar, calcula automáticamente la propuesta de descargo
  *    (no modifica la BD).
  * 2. El Chef revisa la propuesta (insumos, cantidades, costos,

@@ -16,6 +16,7 @@ from .factura_views import (  # CU39 / CU40 (Ciclo 6, visión IA)
     ConciliarFacturaView,
 )
 from .recepcion_views import RecepcionRemitoView  # CU42 (Ciclo 6, visión IA)
+from .contrapropuesta_views import EnviarContrapropuestaView  # Optimizador de Recetas (contrapropuesta a proveedor)
 # CU41 vive en la app usuarios (paquete Seguridad) pero su ruta cuelga de
 # /api/facturas/ para mantener el módulo de facturas junto.
 from usuarios.factura_anomalias_views import DetectarFacturasAnomalasView
@@ -57,8 +58,9 @@ urlpatterns = [
     path('proveedores/', ProveedorListView.as_view(), name='proveedor-list'),
 
     #--- CU19 LOCALIZAR PROVEEDORES MEDIANTE MAPA ---
-    # IMPORTANTE: mapa/ va ANTES de <int:proveedor_id>/ para evitar conflicto de rutas
+    # IMPORTANTE: mapa/ y contrapropuesta/ van ANTES de <int:proveedor_id>/ para evitar conflicto de rutas
     path('proveedores/mapa/', ProveedorMapaView.as_view(), name='proveedor-mapa'),
+    path('proveedores/contrapropuesta/', EnviarContrapropuestaView.as_view(), name='proveedor-contrapropuesta'),
 
     path('proveedores/<int:proveedor_id>/', ProveedorDetailView.as_view(), name='proveedor-detail'),
 

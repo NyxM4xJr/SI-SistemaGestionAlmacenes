@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, TrendingDown, Sparkles, Truck, Replace } from "lucide-react";
+import { ArrowLeft, TrendingDown, Sparkles, Truck, Replace, Mail } from "lucide-react";
 
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 import { getCatalogos } from "@/services/recetaService";
 import {
   optimizarReceta,
+  enviarContrapropuesta,
   type OptimizacionRecetaResponse,
 } from "@/services/optimizacionRecetaService";
 
@@ -28,6 +29,7 @@ export default function OptimizarReceta() {
   const [platoId, setPlatoId] = useState<string>("");
   const [resultado, setResultado] = useState<OptimizacionRecetaResponse | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [enviandoIdx, setEnviandoIdx] = useState<number | null>(null);
 
   useEffect(() => {
     getCatalogos()
@@ -53,6 +55,21 @@ export default function OptimizarReceta() {
       toast.error((error as Error).message || "Error al optimizar la receta.");
     } finally {
       setCargando(false);
+    }
+  };
+
+  const handleContrapropuesta = async (idx: number) => {
+    const s = resultado?.sustituciones[idx];
+    if (!s?.proveedor_actual) return;
+    try {
+      setEnviandoIdx(idx);
+      const res = await enviarContrapropuesta(s.insumo_id, s.proveedor_actual.id);
+      toast.success(`Contrapropuesta enviada a ${res.destinatario}.`);
+    } catch (error: unknown) {
+      console.error(error);
+      toast.error((error as Error).message || "Error al enviar la contrapropuesta.");
+    } finally {
+      setEnviandoIdx(null);
     }
   };
 
@@ -172,6 +189,7 @@ export default function OptimizarReceta() {
                       <th className="text-right px-5 py-3">Costo original</th>
                       <th className="text-right px-5 py-3">Costo sugerido</th>
                       <th className="text-right px-5 py-3">Impacto en el plato</th>
+                      <th className="text-right px-5 py-3">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -207,6 +225,20 @@ export default function OptimizarReceta() {
                         </td>
                         <td className="px-5 py-3 text-right text-green-600 font-medium">
                           {s.ahorro_plato.toFixed(2)} Bs
+                        </td>
+                        <td className="px-5 py-3 text-right">
+                          {s.tipo === "proveedor" && s.proveedor_actual?.email && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="rounded-lg h-8 gap-1.5 text-xs"
+                              disabled={enviandoIdx === idx}
+                              onClick={() => handleContrapropuesta(idx)}
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                              {enviandoIdx === idx ? "Enviando..." : "Enviar contrapropuesta"}
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     ))}

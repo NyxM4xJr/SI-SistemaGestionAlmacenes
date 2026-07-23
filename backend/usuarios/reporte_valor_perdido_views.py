@@ -23,7 +23,7 @@ Tablas consultadas (todas ya existentes):
 - MOVIMIENTO_INVENTARIO  (tipo='merma', causa, valor_perdido, fecha_mov, insumo_id FK -> INSUMO)
 - INSUMO                 (para mostrar el nombre del insumo)
 
-Correspondencia con el diagrama de secuencia (CICLO4_DIAGRAMS_SPEC_MATEO.md):
+Correspondencia con el diagrama de secuencia:
 - F1 alt    [rango de fechas válido / inválido]   -> validación antes de consultar
 - F2 loop   [por cada movimiento de merma]         -> agrupación en memoria
 - F3 alt    [formato pdf / excel]                  -> 2 vistas separadas (PDF / Excel)

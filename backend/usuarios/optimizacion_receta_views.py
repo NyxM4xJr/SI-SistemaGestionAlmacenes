@@ -40,27 +40,42 @@ def _sb():
 
 def _costo_vigente_por_insumo(supabase, insumo_ids):
     """
-    insumo_id -> costo unitario del lote más reciente (misma lógica que CU27).
-    Es lo que la cocina realmente paga hoy por el insumo.
+    insumo_id -> {costo, proveedor_id} del lote más reciente (misma lógica que CU27).
+    Es lo que la cocina realmente paga hoy por el insumo, y a qué proveedor.
     """
     if not insumo_ids:
         return {}
     detalle_lotes = supabase.table('detalle_lote') \
-        .select('insumo_id, costo_unitario, lote:lote_id(created_at)') \
+        .select('insumo_id, costo_unitario, lote:lote_id(created_at, proveedor_id)') \
         .in_('insumo_id', insumo_ids) \
         .execute().data or []
 
     mas_reciente_por_insumo = {}
-    costo_por_insumo = {}
+    vigente_por_insumo = {}
     for dl in detalle_lotes:
         iid = dl['insumo_id']
-        created_at = (dl.get('lote') or {}).get('created_at')
+        lote = dl.get('lote') or {}
+        created_at = lote.get('created_at')
         if not created_at:
             continue
         if iid not in mas_reciente_por_insumo or created_at > mas_reciente_por_insumo[iid]:
             mas_reciente_por_insumo[iid] = created_at
-            costo_por_insumo[iid] = float(dl['costo_unitario'])
-    return costo_por_insumo
+            vigente_por_insumo[iid] = {
+                'costo': float(dl['costo_unitario']),
+                'proveedor_id': lote.get('proveedor_id'),
+            }
+    return vigente_por_insumo
+
+
+def _proveedores_por_id(supabase, proveedor_ids):
+    """proveedor_id -> {nombre, email} para los proveedores dados."""
+    ids = [pid for pid in proveedor_ids if pid]
+    if not ids:
+        return {}
+    filas = supabase.table('proveedor').select(
+        'id, nombre, email'
+    ).in_('id', ids).execute().data or []
+    return {p['id']: {'nombre': p.get('nombre'), 'email': p.get('email')} for p in filas}
 
 
 def _mejor_proveedor_por_insumo(supabase, insumo_ids):
@@ -191,16 +206,21 @@ class OptimizarRecetaIAView(APIView):
         categorias = {(d.get('insumo') or {}).get('categoria') for d in detalles if (d.get('insumo') or {}).get('categoria')}
         alternativas = _alternativas_por_categoria(supabase, set(insumo_ids), categorias)
 
+        proveedores_actuales_ids = {v.get('proveedor_id') for v in costo_vigente.values()}
+        proveedores_info = _proveedores_por_id(supabase, proveedores_actuales_ids)
+
         ingredientes = {}
         for d in detalles:
             iid = d['insumo_id']
             info = d.get('insumo') or {}
+            vigente = costo_vigente.get(iid) or {}
             ingredientes[iid] = {
                 'insumo_id': iid,
                 'insumo': info.get('nombre', f'Insumo #{iid}'),
                 'categoria': info.get('categoria'),
                 'cantidad': float(d.get('cantidad') or 0),
-                'costo_actual': costo_vigente.get(iid, 0.0),
+                'costo_actual': vigente.get('costo', 0.0),
+                'proveedor_actual_id': vigente.get('proveedor_id'),
                 'merma': merma.get(iid, 0.0),
             }
 
@@ -211,6 +231,7 @@ class OptimizarRecetaIAView(APIView):
             if not prov or ing['costo_actual'] <= 0:
                 continue
             if _ahorro_significativo(ing['costo_actual'], prov['precio']):
+                proveedor_actual = proveedores_info.get(ing['proveedor_actual_id'])
                 sustituciones.append(self._armar_sustitucion(
                     tipo='proveedor',
                     ing=ing,
@@ -219,6 +240,11 @@ class OptimizarRecetaIAView(APIView):
                     proveedor_sugerido=prov['proveedor_nombre'],
                     motivo=f"El proveedor {prov['proveedor_nombre'] or 'alternativo'} "
                            f"ofrece este insumo más barato que el costo actual.",
+                    proveedor_actual={
+                        'id': ing['proveedor_actual_id'],
+                        'nombre': (proveedor_actual or {}).get('nombre'),
+                        'email': (proveedor_actual or {}).get('email'),
+                    } if proveedor_actual else None,
                 ))
 
         # ── Palanca B: sustituir insumo (misma categoría, más barato, validado por IA) ──
@@ -307,16 +333,18 @@ class OptimizarRecetaIAView(APIView):
         }, status=status.HTTP_200_OK)
 
     def _armar_sustitucion(self, tipo, ing, nombre_sugerido, costo_sugerido,
-                           proveedor_sugerido, motivo):
+                           proveedor_sugerido, motivo, proveedor_actual=None):
         """Construye una sustitución con su impacto en el plato (aplica merma, como CU27)."""
         ahorro_unitario = round(ing['costo_actual'] - costo_sugerido, 2)
         factor_merma = 1 + ing['merma'] / 100
         ahorro_plato = round(ahorro_unitario * ing['cantidad'] * factor_merma, 2)
         return {
             'tipo': tipo,
+            'insumo_id': ing['insumo_id'],
             'insumo_original': ing['insumo'],
             'insumo_sugerido': nombre_sugerido,
             'proveedor_sugerido': proveedor_sugerido,
+            'proveedor_actual': proveedor_actual,
             'costo_original': round(ing['costo_actual'], 2),
             'costo_sugerido': round(costo_sugerido, 2),
             'ahorro_unitario': ahorro_unitario,

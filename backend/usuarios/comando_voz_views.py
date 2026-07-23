@@ -25,7 +25,7 @@ No se crea ninguna tabla nueva.
 Tablas consultadas: ninguna (solo INSERT vía registrar_accion()
 en DETALLE_BITACORA).
 
-Correspondencia con el diagrama de secuencia (CICLO4_DIAGRAMS_SPEC_MATEO.md):
+Correspondencia con el diagrama de secuencia:
 - F3 critical: registro de bitácora, única llamada atómica,
   solo cuando el comando fue interpretado con éxito.
 """

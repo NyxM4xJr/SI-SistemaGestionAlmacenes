@@ -15,7 +15,7 @@ inventario correspondientes a los platos vendidos. El Chef revisa
 la propuesta y confirma; solo entonces se ejecutan las salidas
 reales en MOVIMIENTO_INVENTARIO.
 
-Decisiones de diseño (cerradas en sesión — ver CICLO4_DIAGRAMS_SPEC_MATEO.md):
+Decisiones de diseño (cerradas en sesión):
 
 1. Relación con CU15: este CU NO vuelve a pedir los datos de turno al
    Chef. El frontend los recibe vía estado de navegación de React

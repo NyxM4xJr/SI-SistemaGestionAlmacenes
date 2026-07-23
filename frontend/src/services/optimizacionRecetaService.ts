@@ -9,11 +9,19 @@ const headers = () => ({
 
 export type TipoSustitucion = "proveedor" | "insumo";
 
+export interface ProveedorActual {
+  id: number;
+  nombre: string | null;
+  email: string | null;
+}
+
 export interface Sustitucion {
   tipo: TipoSustitucion;
+  insumo_id: number;
   insumo_original: string;
   insumo_sugerido: string;
   proveedor_sugerido: string | null;
+  proveedor_actual: ProveedorActual | null;
   costo_original: number;
   costo_sugerido: number;
   ahorro_unitario: number;
@@ -40,5 +48,26 @@ export async function optimizarReceta(platoId: number): Promise<OptimizacionRece
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Error al optimizar la receta.");
+  return data;
+}
+
+export interface ContrapropuestaResponse {
+  enviado: boolean;
+  destinatario: string;
+  competencia: { proveedor_id: number; proveedor_nombre: string | null; precio: number };
+}
+
+/** POST /api/proveedores/contrapropuesta/ — pide al proveedor actual que iguale la cotización más barata de la competencia */
+export async function enviarContrapropuesta(
+  insumoId: number,
+  proveedorDestinoId: number
+): Promise<ContrapropuestaResponse> {
+  const res = await fetch(`${API_URL}/proveedores/contrapropuesta/`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ insumo_id: insumoId, proveedor_destino_id: proveedorDestinoId }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Error al enviar la contrapropuesta.");
   return data;
 }

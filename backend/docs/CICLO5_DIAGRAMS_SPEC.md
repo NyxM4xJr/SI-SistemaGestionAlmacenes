@@ -2,7 +2,7 @@
 ## Especificación de Diagramas para Enterprise Architect 15
 ### Ciclo 5 · Proyecto SI1 · Grupo #2 · UNIVALLE
 
-> Sigue el formato de `CICLO4_DIAGRAMS_SPEC_MATEO.md`. Los 4 diagramas
+> Sigue el mismo formato usado en el Ciclo 4. Los 4 diagramas
 > estándar por CU: Caso de Uso · Comunicación · Clases de Análisis ·
 > Secuencia.
 >
@@ -42,7 +42,7 @@
 
 # 1. CONVENCIONES GENERALES
 
-Se reutilizan **sin cambios** las convenciones de `CICLO4_DIAGRAMS_SPEC_MATEO.md`
+Se reutilizan **sin cambios** las convenciones del Ciclo 4
 (secciones 1.1 a 1.8: nombres de clases `C`/`CC`/`CE`, visibilidad `-`/`+`,
 formato de clase, líneas continuas en Clases, tipos de mensaje en
 Secuencia, fragmentos `alt`/`loop`/`critical`, separación de flujos con
@@ -1984,6 +1984,6 @@ tenía ninguna dependencia declarada hacia "Proveedores".
 ---
 
 *Documento de especificación de diagramas · Ciclo 5 · Grupo #2 · SI1 · UNIVALLE*
-*Basado en el formato de `CICLO4_DIAGRAMS_SPEC_MATEO.md`*
+*Basado en el formato del Ciclo 4*
 *Fundamentos de include/extend verificados contra Rumbaugh/Jacobson/Booch*
 *(UML Reference Manual) y Jacobson (Proceso Unificado de Desarrollo de Software)*
