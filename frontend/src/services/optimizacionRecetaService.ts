@@ -7,12 +7,17 @@ const headers = () => ({
   Authorization: `Bearer ${getToken()}`,
 });
 
+export type TipoSustitucion = "proveedor" | "insumo";
+
 export interface Sustitucion {
+  tipo: TipoSustitucion;
   insumo_original: string;
   insumo_sugerido: string;
+  proveedor_sugerido: string | null;
   costo_original: number;
   costo_sugerido: number;
   ahorro_unitario: number;
+  ahorro_plato: number;
   motivo: string;
 }
 
@@ -28,7 +33,7 @@ export interface OptimizacionRecetaResponse {
   resumen: string;
 }
 
-/** GET /api/recetas-ia/optimizar/?plato_id=N — sustituciones más baratas sugeridas por la IA */
+/** GET /api/recetas-ia/optimizar/?plato_id=N — sugiere cambio de proveedor o sustitución de insumo para abaratar la receta */
 export async function optimizarReceta(platoId: number): Promise<OptimizacionRecetaResponse> {
   const res = await fetch(`${API_URL}/recetas-ia/optimizar/?plato_id=${platoId}`, {
     headers: headers(),

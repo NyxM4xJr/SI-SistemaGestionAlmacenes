@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, TrendingDown, Sparkles } from "lucide-react";
+import { ArrowLeft, TrendingDown, Sparkles, Truck, Replace } from "lucide-react";
 
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -76,8 +77,8 @@ export default function OptimizarReceta() {
                 Optimizar Receta con IA
               </h1>
               <p className="text-gray-500 mt-1">
-                La IA sugiere sustituir insumos por alternativas más baratas de
-                la misma categoría, manteniendo el perfil del plato.
+                Busca insumos comprados a un proveedor más caro que el
+                disponible, y sustituciones de insumo validadas por IA.
               </p>
             </div>
           </div>
@@ -109,7 +110,7 @@ export default function OptimizarReceta() {
         {cargando && (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-500" />
-            <p className="text-sm">La IA está analizando alternativas más baratas...</p>
+            <p className="text-sm">Analizando proveedores y alternativas más baratas...</p>
           </div>
         )}
 
@@ -155,7 +156,7 @@ export default function OptimizarReceta() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                Resumen de la IA
+                Resumen
               </p>
               <p className="text-sm text-gray-700">{resultado.resumen}</p>
             </div>
@@ -165,18 +166,39 @@ export default function OptimizarReceta() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                     <tr>
+                      <th className="text-left px-5 py-3">Tipo</th>
                       <th className="text-left px-5 py-3">Insumo original</th>
                       <th className="text-left px-5 py-3">Sugerido</th>
                       <th className="text-right px-5 py-3">Costo original</th>
                       <th className="text-right px-5 py-3">Costo sugerido</th>
-                      <th className="text-right px-5 py-3">Ahorro</th>
+                      <th className="text-right px-5 py-3">Impacto en el plato</th>
                     </tr>
                   </thead>
                   <tbody>
                     {resultado.sustituciones.map((s, idx) => (
                       <tr key={idx} className="border-t border-gray-100">
+                        <td className="px-5 py-3">
+                          {s.tipo === "proveedor" ? (
+                            <Badge className="bg-blue-100 text-blue-700 border-0 gap-1">
+                              <Truck className="w-3 h-3" />
+                              Cambiar proveedor
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-indigo-100 text-indigo-700 border-0 gap-1">
+                              <Replace className="w-3 h-3" />
+                              Sustituir insumo
+                            </Badge>
+                          )}
+                        </td>
                         <td className="px-5 py-3 text-gray-900">{s.insumo_original}</td>
-                        <td className="px-5 py-3 text-gray-900">{s.insumo_sugerido}</td>
+                        <td className="px-5 py-3 text-gray-900">
+                          {s.insumo_sugerido}
+                          {s.proveedor_sugerido && (
+                            <span className="block text-xs text-gray-400">
+                              {s.proveedor_sugerido}
+                            </span>
+                          )}
+                        </td>
                         <td className="px-5 py-3 text-right text-gray-500">
                           {s.costo_original.toFixed(2)} Bs
                         </td>
@@ -184,7 +206,7 @@ export default function OptimizarReceta() {
                           {s.costo_sugerido.toFixed(2)} Bs
                         </td>
                         <td className="px-5 py-3 text-right text-green-600 font-medium">
-                          {s.ahorro_unitario.toFixed(2)} Bs
+                          {s.ahorro_plato.toFixed(2)} Bs
                         </td>
                       </tr>
                     ))}
