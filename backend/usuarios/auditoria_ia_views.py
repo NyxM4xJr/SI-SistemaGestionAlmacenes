@@ -1,24 +1,3 @@
-# ============================================================
-# ARCHIVO: backend/usuarios/auditoria_ia_views.py
-# CASO DE USO: CU43 - Auditoría Inteligente de Bitácora
-# CICLO: 6
-#
-# DESCRIPCIÓN:
-#   El administrador/gerente obtiene un resumen ejecutivo de la actividad
-#   reciente del sistema y alertas de patrones sospechosos, sin tener que
-#   leer cientos de registros de la bitácora a mano. El backend junta las
-#   dos tablas de auditoría (bitacora + detalle_bitacora), calcula señales
-#   OBJETIVAS en Python (logins fallidos por usuario, cambios de rol,
-#   activaciones/desactivaciones, usuarios más activos) y la IA solo
-#   REDACTA el informe priorizado (no inventa datos).
-#
-# ENDPOINT:
-#   GET /api/auditoria-ia/
-#
-# BITÁCORA:
-#   AUDITAR_BITACORA_IA
-# ============================================================
-
 import ast
 import logging
 from collections import Counter
@@ -37,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 ROLES_AUDITORIA = ['administrador', 'gerente']
 
-# Acciones sensibles que interesan a la auditoría de seguridad.
 ACCIONES_FALLIDAS = {'LOGIN_FALLIDO', 'LOGIN_BLOQUEADO'}
 ACCIONES_SENSIBLES = {'CHANGE_ROLE', 'TOGGLE_ACTIVE', 'REGISTER'}
 
@@ -65,7 +43,6 @@ def _sb():
 
 
 def _parse_descripcion(desc):
-    """detalle_bitacora.descripcion es str(dict); intenta parsearlo a dict."""
     if isinstance(desc, dict):
         return desc
     if not desc or not isinstance(desc, str):
@@ -78,7 +55,6 @@ def _parse_descripcion(desc):
 
 
 def _recolectar_registros(supabase):
-    """Combina bitacora (LOGIN/LOGOUT) + detalle_bitacora (resto) a un formato común."""
     registros = []
 
     bit = (
@@ -110,7 +86,6 @@ def _recolectar_registros(supabase):
 
 
 def _calcular_senales(registros):
-    """Señales objetivas para alimentar a la IA."""
     fallidos_por_usuario = Counter()
     acciones_sensibles = []
     actividad_por_usuario = Counter()
@@ -141,11 +116,7 @@ def _calcular_senales(registros):
 
 
 class AuditoriaBitacoraIAView(APIView):
-    """
-    GET /api/auditoria-ia/
-
-    Respuesta (200): { "informe": str, "senales": {...} }
-    """
+    """GET /api/auditoria-ia/ — informe de auditoría generado por IA a partir de señales calculadas en la bitácora."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -156,7 +127,7 @@ class AuditoriaBitacoraIAView(APIView):
             supabase = _sb()
             registros = _recolectar_registros(supabase)
         except Exception as e:
-            logger.error(f"Error recolectando bitácora para CU43: {str(e)}")
+            logger.error(f"Error recolectando bitácora para auditoría IA: {str(e)}")
             return Response(
                 {'error': 'Error al leer la bitácora.', 'detalle': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -166,7 +137,6 @@ class AuditoriaBitacoraIAView(APIView):
 
         hay_riesgo = bool(senales['logins_fallidos_por_usuario'] or senales['acciones_sensibles'])
 
-        # Si no hay actividad sensible, no se llama a la IA (ahorra costo).
         if not registros:
             resumen = detalle = 'No hay actividad registrada para auditar.'
         elif not hay_riesgo:
@@ -180,14 +150,13 @@ class AuditoriaBitacoraIAView(APIView):
                     max_tokens=500,
                 )
             except IANoDisponibleError as e:
-                logger.error(f"IA no disponible para CU43: {str(e)}")
+                logger.error(f"IA no disponible para auditoría de bitácora: {str(e)}")
                 return Response(
                     {'error': f'El agente de IA no está disponible: {str(e)}'},
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
             resumen = (resultado.get('resumen') or '').strip() if isinstance(resultado, dict) else ''
             detalle = (resultado.get('detalle') or '').strip() if isinstance(resultado, dict) else ''
-            # Respaldo: si la IA omitió alguno, se usa el otro.
             resumen = resumen or detalle
             detalle = detalle or resumen
 

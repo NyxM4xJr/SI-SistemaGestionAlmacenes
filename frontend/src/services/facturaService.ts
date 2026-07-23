@@ -1,15 +1,3 @@
-/**
- * ============================================================
- * ARCHIVO: frontend/src/services/facturaService.ts
- * CASOS DE USO: CU39 (OCR de facturas) y CU40 (conciliación)
- * CICLO: 6
- *
- * DESCRIPCIÓN: Capa HTTP del módulo de facturas. Extrae datos de la
- * imagen con IA (OCR), guarda la factura revisada, la lista/elimina y
- * la concilia contra una orden de compra.
- * ============================================================
- */
-
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
 const getToken = () => localStorage.getItem("access_token");
@@ -18,8 +6,6 @@ const headers = () => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${getToken()}`,
 });
-
-// ── Tipos ────────────────────────────────────────────────────
 
 export interface ItemFactura {
   insumo: string;
@@ -87,8 +73,6 @@ export interface GuardarFacturaPayload {
   items: ItemFactura[];
   imagen?: string | null;
 }
-
-// ── Endpoints ────────────────────────────────────────────────
 
 /** POST /api/facturas/ocr/ — Extrae datos de la imagen (sin guardar). */
 export async function extraerFacturaOCR(imagen: string): Promise<FacturaOCRResult> {

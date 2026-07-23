@@ -225,6 +225,12 @@ export const menuConfig: MenuNode[] = [
         path: "/recetas-ia",
         roles: ["chef", "gerente", "administrador"],
       },
+      {
+        id: "cu45",
+        label: "Optimizar Receta (IA)",
+        path: "/recetas/optimizar",
+        roles: ["chef", "gerente", "administrador"],
+      },
     ],
   },
 

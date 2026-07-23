@@ -1,16 +1,3 @@
-/**
- * ============================================================
- * ARCHIVO: frontend/src/services/ordenCompraService.ts
- * CASO DE USO: CU36 - Órdenes de Compra Automáticas
- * CICLO: 5
- * FECHA: 03/07/26
- *
- * DESCRIPCIÓN: Servicio para listar/generar órdenes de compra.
- * La generación automática elige el proveedor más barato para
- * cada insumo bajo mínimo y lo notifica por email.
- * ============================================================
- */
-
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
 const getToken = () => localStorage.getItem("access_token");
@@ -19,8 +6,6 @@ const headers = () => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${getToken()}`,
 });
-
-// ── Tipos ────────────────────────────────────────────────────
 
 export type EstadoOrden = "generada" | "enviada" | "recibida" | "cancelada";
 
@@ -58,8 +43,6 @@ export interface ResultadoGeneracion {
   }[];
   insumos_sin_proveedor: string[];
 }
-
-// ── Endpoints ────────────────────────────────────────────────
 
 /** GET /api/ordenes-compra/ — Lista de órdenes */
 export async function getOrdenesCompra(): Promise<OrdenCompra[]> {

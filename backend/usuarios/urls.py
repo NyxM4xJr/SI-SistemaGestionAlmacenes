@@ -66,6 +66,7 @@ from .briefing_ia_views import BriefingIAView  # CU37 (Ciclo 5)
 from .receta_ia_views import SugerirRecetaIAView  # CU38 (Ciclo 5)
 from .auditoria_ia_views import AuditoriaBitacoraIAView  # CU43 (Ciclo 6)
 from .pronostico_views import PronosticoDemandaView  # CU44 (Ciclo 6)
+from .optimizacion_receta_views import OptimizarRecetaIAView  # CU45 (Ciclo 6)
 
 """
 Configuración de rutas (URLs) para la app de Usuarios.
@@ -205,6 +206,9 @@ urlpatterns = [
 
     # ---- CU38 GENERACIÓN DE RECETAS CON IA ----
     path('recetas-ia/generar/', SugerirRecetaIAView.as_view(), name='recetas-ia-generar'),
+
+    # ---- CU45 OPTIMIZADOR DE RECETAS CON IA ----
+    path('recetas-ia/optimizar/', OptimizarRecetaIAView.as_view(), name='recetas-ia-optimizar'),
 
     # ---- CU25 GENERAR REPORTE DE VALOR PERDIDO ----
     path('reportes/valor-perdido/', ReporteValorPerdidoView.as_view(), name='reporte-valor-perdido'),

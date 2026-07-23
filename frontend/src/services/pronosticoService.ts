@@ -1,11 +1,3 @@
-/**
- * ============================================================
- * ARCHIVO: frontend/src/services/pronosticoService.ts
- * CASO DE USO: CU44 - Pronóstico de Demanda
- * CICLO: 6
- * ============================================================
- */
-
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
 const getToken = () => localStorage.getItem("access_token");

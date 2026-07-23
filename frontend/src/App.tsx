@@ -113,6 +113,8 @@ import OrdenCompraList from "./pages/OrdenesCompra/OrdenCompraList";
 
 // CU38 - Generación de Recetas con IA
 import RecetasIA from "./pages/Menus/RecetasIA";
+// CU45 - Optimizador de Recetas con IA
+import OptimizarReceta from "./pages/Menus/OptimizarReceta";
 
 // CU39/CU40/CU41 - Facturas con IA (OCR, conciliación, anomalías)
 import FacturaOCR from "./pages/Facturas/FacturaOCR";
@@ -207,6 +209,9 @@ const App = () => (
             {/* CU24 - Consultar Sugerencia de Menú por Temporada */}
             <Route path="/sugerir-menu" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><SugerirMenu /></ProtectedRoute>} />
             <Route path="/recetas-ia" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><RecetasIA /></ProtectedRoute>} />
+
+            {/* CU45 - Optimizador de Recetas con IA */}
+            <Route path="/recetas/optimizar" element={<ProtectedRoute roles={["administrador", "gerente", "chef"]}><OptimizarReceta /></ProtectedRoute>} />
 
 
           {/* PAQUETE 5: Proveedores */}

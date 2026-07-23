@@ -1,24 +1,3 @@
-# ============================================================
-# ARCHIVO: backend/usuarios/pronostico_views.py
-# CASO DE USO: CU44 - Pronóstico de Demanda
-# CICLO: 6
-#
-# DESCRIPCIÓN:
-#   A diferencia de CU36 (órdenes automáticas, que es REACTIVO: pide
-#   cuando el stock ya cayó bajo el mínimo), este CU es PREDICTIVO:
-#   analiza el consumo histórico real (movimientos de tipo 'salida') de
-#   los últimos N días, calcula el consumo diario promedio por insumo, lo
-#   cruza con el stock actual para estimar los DÍAS DE COBERTURA restantes
-#   y cuánto conviene pedir para no quedarse sin stock. El backend calcula
-#   los números; la IA solo redacta la priorización (no recalcula nada).
-#
-# ENDPOINT:
-#   GET /api/reportes/pronostico/?dias=N   (default N=30)
-#
-# BITÁCORA:
-#   GENERAR_PRONOSTICO_DEMANDA
-# ============================================================
-
 import logging
 from datetime import date, timedelta
 
@@ -36,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 ROLES_PRONOSTICO = ['administrador', 'gerente']
 DIAS_DEFAULT = 30
-# Se marca "urgente" un insumo cuya cobertura sea menor a estos días.
 UMBRAL_DIAS_COBERTURA = 7
 
 SYSTEM_PROMPT_PRONOSTICO = (
@@ -61,20 +39,14 @@ def _sb():
 
 
 def _calcular_pronostico(supabase, dias):
-    """
-    Calcula, por insumo, el consumo diario promedio (salidas de los últimos
-    'dias' días), los días de cobertura según el stock actual y la cantidad
-    sugerida a pedir para cubrir el próximo período de 'dias' días.
-    """
     hoy = date.today()
     desde = (hoy - timedelta(days=dias)).isoformat()
 
-    # 1) Salidas (consumo real) del período, agrupadas por insumo.
     movs = supabase.table('movimiento_inventario').select(
         'insumo_id, cantidad, fecha_mov, insumo:insumo_id(nombre)'
     ).eq('tipo', 'salida').gte('fecha_mov', desde).execute()
 
-    consumo_por_insumo = {}   # insumo_id -> {nombre, total}
+    consumo_por_insumo = {}
     for m in (movs.data or []):
         iid = m.get('insumo_id')
         if iid is None:
@@ -88,7 +60,6 @@ def _calcular_pronostico(supabase, dias):
     if not consumo_por_insumo:
         return []
 
-    # 2) Stock actual por insumo (sumando ubicaciones).
     insumo_ids = list(consumo_por_insumo.keys())
     stock_res = supabase.table('stock').select(
         'insumo_id, cantidad'
@@ -98,7 +69,6 @@ def _calcular_pronostico(supabase, dias):
         iid = s.get('insumo_id')
         stock_por_insumo[iid] = stock_por_insumo.get(iid, 0.0) + float(s.get('cantidad') or 0)
 
-    # 3) Armar el pronóstico.
     pronostico = []
     for iid, info in consumo_por_insumo.items():
         consumo_diario = round(info['total'] / dias, 3) if dias else 0
@@ -106,8 +76,7 @@ def _calcular_pronostico(supabase, dias):
         if consumo_diario > 0:
             dias_cobertura = round(stock_actual / consumo_diario, 1)
         else:
-            dias_cobertura = None  # sin consumo → no se agota
-        # Cantidad sugerida: cubrir el próximo período menos lo que ya hay.
+            dias_cobertura = None
         demanda_proyectada = consumo_diario * dias
         cantidad_sugerida = max(int(round(demanda_proyectada - stock_actual)), 0)
 
@@ -122,7 +91,6 @@ def _calcular_pronostico(supabase, dias):
             'urgente': dias_cobertura is not None and dias_cobertura < UMBRAL_DIAS_COBERTURA,
         })
 
-    # Ordenar: primero los que se agotan antes (cobertura más baja).
     pronostico.sort(
         key=lambda x: (x['dias_cobertura'] is None, x['dias_cobertura'] if x['dias_cobertura'] is not None else 1e9)
     )
@@ -130,12 +98,7 @@ def _calcular_pronostico(supabase, dias):
 
 
 class PronosticoDemandaView(APIView):
-    """
-    GET /api/reportes/pronostico/?dias=N
-
-    Respuesta (200): { "pronostico": [...], "resumen_ia": str,
-                       "dias_analizados": N, "generado_en": iso }
-    """
+    """GET /api/reportes/pronostico/?dias=N — proyecta consumo, cobertura y cantidad sugerida a pedir por insumo."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -154,7 +117,7 @@ class PronosticoDemandaView(APIView):
             supabase = _sb()
             pronostico = _calcular_pronostico(supabase, dias)
         except Exception as e:
-            logger.error(f"Error calculando pronóstico CU44: {str(e)}")
+            logger.error(f"Error calculando pronóstico de demanda: {str(e)}")
             return Response(
                 {'error': 'Error al calcular el pronóstico.', 'detalle': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -165,14 +128,13 @@ class PronosticoDemandaView(APIView):
             resumen = detalle = msg
         else:
             try:
-                # Solo se le pasan a la IA los más relevantes (los primeros 15).
                 resultado = generar_json_ia(
                     SYSTEM_PROMPT_PRONOSTICO,
                     f"Ventana: {dias} días.\nPronóstico:\n{pronostico[:15]}",
                     max_tokens=500,
                 )
             except IANoDisponibleError as e:
-                logger.error(f"IA no disponible para CU44: {str(e)}")
+                logger.error(f"IA no disponible para pronóstico de demanda: {str(e)}")
                 return Response(
                     {'error': f'El agente de IA no está disponible: {str(e)}'},
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,

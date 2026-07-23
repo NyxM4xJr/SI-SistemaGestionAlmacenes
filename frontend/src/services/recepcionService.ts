@@ -1,15 +1,3 @@
-/**
- * ============================================================
- * ARCHIVO: frontend/src/services/recepcionService.ts
- * CASO DE USO: CU42 - Recepción de Lote Asistida por IA
- * CICLO: 6
- *
- * DESCRIPCIÓN: Envía la foto del remito/factura de entrega al backend
- * para que la IA de visión extraiga todos los ítems (insumo, cantidad,
- * costo, vencimiento) y precargar el formulario de alta de lote.
- * ============================================================
- */
-
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
 const getToken = () => localStorage.getItem("access_token");

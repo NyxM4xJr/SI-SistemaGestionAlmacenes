@@ -1,29 +1,3 @@
-# ============================================================
-# ARCHIVO: backend/inventario/orden_compra_views.py
-# CASO DE USO: CU36 - Órdenes de Compra Automáticas
-# CICLO: 5
-# FECHA: 03/07/26
-#
-# DESCRIPCIÓN:
-#   Genera órdenes de compra a proveedores para los insumos cuyo
-#   stock está en o por debajo del mínimo (stock.cantidad <= stock_min).
-#   Por cada insumo se elige el proveedor de MENOR precio (tabla
-#   proveedor_insumo.precio) y se agrupan los insumos por proveedor
-#   en una orden. Al generarse, se notifica por email al proveedor.
-#
-# ENDPOINTS:
-#   GET    /api/ordenes-compra/           → listar órdenes
-#   POST   /api/ordenes-compra/           → crear orden manual
-#   POST   /api/ordenes-compra/generar/   → generar automáticas
-#   GET    /api/ordenes-compra/{id}/      → detalle
-#   PATCH  /api/ordenes-compra/{id}/      → cambiar estado
-#   DELETE /api/ordenes-compra/{id}/      → eliminar
-#
-# BITÁCORA:
-#   GENERAR_ORDENES_COMPRA_AUTO, CREAR_ORDEN_COMPRA,
-#   ACTUALIZAR_ORDEN_COMPRA, ELIMINAR_ORDEN_COMPRA
-# ============================================================
-
 import logging
 from datetime import datetime
 
@@ -40,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 ROLES_COMPRA = ['administrador', 'gerente']
 ESTADOS_VALIDOS = ['generada', 'enviada', 'recibida', 'cancelada']
-CANTIDAD_DEFAULT = 10  # cantidad a pedir si no hay stock_max definido
+CANTIDAD_DEFAULT = 10
 
 
 def _sb():
@@ -48,16 +22,7 @@ def _sb():
 
 
 class OrdenCompraListView(APIView):
-    """
-    GET  /api/ordenes-compra/  → Lista las órdenes de compra.
-    POST /api/ordenes-compra/  → Crea una orden manual.
-
-    Body POST:
-    {
-      "proveedor_id": int,
-      "items": [ {"insumo_id": int, "cantidad": int, "precio_unitario": float}, ... ]
-    }
-    """
+    """GET/POST /api/ordenes-compra/ — lista órdenes de compra o crea una orden manual."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -143,13 +108,7 @@ class OrdenCompraListView(APIView):
 
 
 class GenerarOrdenesAutomaticasView(APIView):
-    """
-    POST /api/ordenes-compra/generar/
-
-    Genera órdenes de compra automáticas para los insumos con
-    stock <= stock_min, eligiendo el proveedor de menor precio y
-    notificando por email a cada proveedor.
-    """
+    """POST /api/ordenes-compra/generar/ — genera órdenes automáticas para insumos con stock <= stock_min."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -159,7 +118,6 @@ class GenerarOrdenesAutomaticasView(APIView):
         try:
             supabase = _sb()
 
-            # 1) Stock bajo mínimo (comparación columna-columna se hace en Python)
             stock_res = supabase.table('stock').select(
                 'id, insumo_id, cantidad, stock_min, stock_max, insumo:insumo_id(nombre)'
             ).execute()
@@ -182,14 +140,12 @@ class GenerarOrdenesAutomaticasView(APIView):
 
             insumo_ids = list({s['insumo_id'] for s in bajos})
 
-            # 2) proveedor_insumo de esos insumos, con datos del proveedor
             pi_res = supabase.table('proveedor_insumo').select(
                 'insumo_id, precio, proveedor_id, proveedor:proveedor_id(id, nombre, email)'
             ).in_('insumo_id', insumo_ids).execute()
             pi_rows = pi_res.data or []
 
-            # Elegir, por insumo, el proveedor de MENOR precio
-            mejor_por_insumo = {}  # insumo_id -> {proveedor, precio}
+            mejor_por_insumo = {}
             for pi in pi_rows:
                 iid = pi['insumo_id']
                 precio = float(pi.get('precio') or 0)
@@ -200,17 +156,14 @@ class GenerarOrdenesAutomaticasView(APIView):
                         'proveedor': pi.get('proveedor') or {},
                     }
 
-            # Mapa auxiliares insumo -> nombre / stock info
             nombre_insumo = {}
             stock_por_insumo = {}
             for s in bajos:
                 nombre_insumo[s['insumo_id']] = (s.get('insumo') or {}).get('nombre', f"Insumo #{s['insumo_id']}")
-                # Si un insumo tiene varias filas, se toma la primera bajo mínimo
                 stock_por_insumo.setdefault(s['insumo_id'], s)
 
-            # 3) Agrupar por proveedor
-            por_proveedor = {}   # proveedor_id -> {proveedor, items:[...]}
-            sin_proveedor = []   # insumos bajos sin proveedor asociado
+            por_proveedor = {}
+            sin_proveedor = []
             for iid in insumo_ids:
                 mejor = mejor_por_insumo.get(iid)
                 if not mejor or not mejor.get('proveedor_id'):
@@ -237,7 +190,6 @@ class GenerarOrdenesAutomaticasView(APIView):
                     'subtotal': round(precio * cantidad, 2),
                 })
 
-            # 4) Crear una orden por proveedor + notificar por email
             ordenes_creadas = []
             for pid, grupo in por_proveedor.items():
                 items = grupo['items']
@@ -261,8 +213,6 @@ class GenerarOrdenesAutomaticasView(APIView):
                 } for i in items]
                 supabase.table('detalle_orden_compra').insert(detalle_rows).execute()
 
-                # Notificar al proveedor por email (si tiene email configurado)
-                # Vía API HTTP de Resend, no SMTP (Railway bloquea SMTP saliente).
                 email_proveedor = (grupo['proveedor'] or {}).get('email')
                 email_enviado = False
                 if email_proveedor:
@@ -292,7 +242,6 @@ class GenerarOrdenesAutomaticasView(APIView):
                     'estado': 'enviada' if email_enviado else 'generada',
                 })
 
-            # 5) Bitácora
             ip_cliente = obtener_ip_cliente(request)
             registrar_accion(
                 usuario_id=str(request.user.id),
@@ -433,11 +382,7 @@ class GenerarOrdenesAutomaticasView(APIView):
 
 
 class OrdenCompraDetailView(APIView):
-    """
-    GET    /api/ordenes-compra/{id}/  → Detalle de una orden.
-    PATCH  /api/ordenes-compra/{id}/  → Cambia el estado.
-    DELETE /api/ordenes-compra/{id}/  → Elimina una orden.
-    """
+    """GET/PATCH/DELETE /api/ordenes-compra/{id}/ — detalle, cambio de estado o eliminación de una orden."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request, orden_id):
@@ -496,7 +441,6 @@ class OrdenCompraDetailView(APIView):
             if not check.data:
                 return Response({'error': 'Orden no encontrada'}, status=status.HTTP_404_NOT_FOUND)
 
-            # detalle_orden_compra se elimina en cascada (FK on delete cascade)
             supabase.table('orden_compra').delete().eq('id', orden_id).execute()
 
             ip_cliente = obtener_ip_cliente(request)

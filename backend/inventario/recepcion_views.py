@@ -1,28 +1,3 @@
-# ============================================================
-# ARCHIVO: backend/inventario/recepcion_views.py
-# CASO DE USO: CU42 - Recepción de Lote Asistida por IA (visión)
-# CICLO: 6
-#
-# DESCRIPCIÓN:
-#   En una recepción de mercadería, el proveedor entrega junto con los
-#   insumos un REMITO/FACTURA que lista todos los productos con sus
-#   cantidades, costos y (a veces) vencimientos. En lugar de tipear ese
-#   "montón de datos" insumo por insumo, el encargado saca una foto del
-#   remito y la IA de visión (gpt-4o-mini) extrae TODOS los ítems de una
-#   vez para precargar el formulario de alta de lote.
-#
-#   Esta vista NO persiste: solo devuelve los ítems extraídos (con el
-#   insumo ya emparejado al catálogo cuando es posible). El alta real del
-#   lote reutiliza el endpoint existente POST /api/lotes/ (LoteViewSet),
-#   que ya acepta fecha_vencimiento por detalle.
-#
-# ENDPOINT:
-#   POST /api/lotes/recepcion-remito/
-#
-# BITÁCORA:
-#   ESCANEAR_REMITO_RECEPCION
-# ============================================================
-
 import logging
 
 from rest_framework.views import APIView
@@ -58,7 +33,6 @@ def _sb():
 
 
 def _mapa_insumos_por_nombre(supabase):
-    """nombre_lower -> insumo_id, para emparejar los ítems del remito."""
     try:
         res = supabase.table('insumo').select('id, nombre').execute()
         return {
@@ -71,13 +45,7 @@ def _mapa_insumos_por_nombre(supabase):
 
 
 class RecepcionRemitoView(APIView):
-    """
-    POST /api/lotes/recepcion-remito/
-    Body: { "imagen": "data:image/jpeg;base64,..." }
-
-    Devuelve los ítems extraídos del remito SIN persistir, cada uno con el
-    insumo_id emparejado del catálogo cuando el nombre coincide.
-    """
+    """POST /api/lotes/recepcion-remito/ — extrae los ítems de un remito con IA de visión, sin persistir."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -99,7 +67,7 @@ class RecepcionRemitoView(APIView):
                 max_tokens=1500,
             )
         except IANoDisponibleError as e:
-            logger.error(f"IA no disponible para CU42 recepción: {str(e)}")
+            logger.error(f"IA no disponible para recepción de remitos: {str(e)}")
             return Response(
                 {'error': f'El agente de IA no está disponible: {str(e)}'},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -107,7 +75,6 @@ class RecepcionRemitoView(APIView):
 
         items = datos.get('items', []) if isinstance(datos, dict) else []
 
-        # Emparejar cada ítem con un insumo del catálogo por nombre.
         supabase = _sb()
         mapa = _mapa_insumos_por_nombre(supabase)
         items_enriquecidos = []

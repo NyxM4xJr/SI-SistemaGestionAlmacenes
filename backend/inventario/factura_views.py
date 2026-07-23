@@ -1,33 +1,3 @@
-# ============================================================
-# ARCHIVO: backend/inventario/factura_views.py
-# CASOS DE USO:
-#   CU39 - OCR de Facturas con IA (visión)
-#   CU40 - Conciliación Factura vs Orden de Compra
-# CICLO: 6
-#
-# DESCRIPCIÓN:
-#   CU39: recibe la FOTO de una factura de proveedor, la lee con la IA
-#   de visión (gpt-4o-mini) y extrae número, fecha, proveedor, ítems y
-#   total. El OCR NO persiste (paso de revisión); recién al confirmar se
-#   guarda en las tablas 'factura' y 'detalle_factura'. La imagen se sube
-#   (opcionalmente) al bucket de Supabase Storage 'facturas'.
-#
-#   CU40: sobre una factura ya guardada, compara ítem por ítem lo
-#   facturado contra la orden de compra que la originó (CU36) y la IA
-#   lista SOLO las diferencias reales (cantidad, precio, faltantes).
-#
-# ENDPOINTS:
-#   POST   /api/facturas/ocr/                 → extrae datos de la imagen (CU39)
-#   GET    /api/facturas/                     → lista facturas guardadas (CU39)
-#   POST   /api/facturas/                     → guarda una factura revisada (CU39)
-#   GET    /api/facturas/{id}/                → detalle (CU39)
-#   DELETE /api/facturas/{id}/                → elimina (CU39)
-#   POST   /api/facturas/{id}/conciliar/      → concilia contra una orden (CU40)
-#
-# BITÁCORA:
-#   EXTRAER_FACTURA_OCR, REGISTRAR_FACTURA, ELIMINAR_FACTURA, CONCILIAR_FACTURA
-# ============================================================
-
 import base64
 import binascii
 import logging
@@ -87,16 +57,10 @@ def _sb():
 
 
 def _subir_imagen_factura(supabase, imagen_data_url):
-    """
-    Sube la imagen (data URL base64) al bucket de Supabase Storage y devuelve
-    la ruta guardada. Si el bucket no existe o el upload falla, devuelve None
-    sin romper el flujo (la imagen es opcional, según el plan).
-    """
     if not imagen_data_url or ',' not in imagen_data_url:
         return None
     try:
         cabecera, b64 = imagen_data_url.split(',', 1)
-        # cabecera tipo "data:image/jpeg;base64"
         ext = 'jpg'
         if 'image/' in cabecera:
             ext = cabecera.split('image/')[1].split(';')[0] or 'jpg'
@@ -110,13 +74,11 @@ def _subir_imagen_factura(supabase, imagen_data_url):
         logger.error(f"Imagen de factura inválida, no se sube: {str(e)}")
         return None
     except Exception as e:
-        # Bucket inexistente u otro problema de Storage: no bloquea el guardado.
         logger.warning(f"No se pudo subir la imagen al bucket '{BUCKET_FACTURAS}': {str(e)}")
         return None
 
 
 def _mapa_insumos_por_nombre(supabase):
-    """nombre_lower -> insumo_id, para intentar enlazar los ítems del OCR."""
     try:
         res = supabase.table('insumo').select('id, nombre').execute()
         return {
@@ -129,12 +91,7 @@ def _mapa_insumos_por_nombre(supabase):
 
 
 class FacturaOCRView(APIView):
-    """
-    POST /api/facturas/ocr/
-    Body: { "imagen": "data:image/jpeg;base64,..." }
-
-    Devuelve los datos extraídos por la IA SIN persistir (paso de revisión).
-    """
+    """POST /api/facturas/ocr/ — extrae datos de una factura con IA de visión, sin persistir."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -156,7 +113,7 @@ class FacturaOCRView(APIView):
                 max_tokens=1200,
             )
         except IANoDisponibleError as e:
-            logger.error(f"IA no disponible para CU39 OCR: {str(e)}")
+            logger.error(f"IA no disponible para OCR de facturas: {str(e)}")
             return Response(
                 {'error': f'El agente de IA no está disponible: {str(e)}'},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -176,19 +133,7 @@ class FacturaOCRView(APIView):
 
 
 class FacturaListView(APIView):
-    """
-    GET  /api/facturas/  → lista las facturas guardadas.
-    POST /api/facturas/  → guarda una factura revisada.
-
-    Body POST:
-    {
-      "numero": str, "fecha": "YYYY-MM-DD", "proveedor_id": int|null,
-      "total": number,
-      "items": [{"insumo": str, "cantidad": number,
-                 "precio_unitario": number, "subtotal": number}],
-      "imagen": "data:image/...;base64,..."   (opcional)
-    }
-    """
+    """GET/POST /api/facturas/ — lista facturas guardadas o guarda una factura revisada."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -287,10 +232,7 @@ class FacturaListView(APIView):
 
 
 class FacturaDetailView(APIView):
-    """
-    GET    /api/facturas/{id}/  → detalle de una factura.
-    DELETE /api/facturas/{id}/  → elimina una factura.
-    """
+    """GET/DELETE /api/facturas/{id}/ — detalle o eliminación de una factura."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request, factura_id):
@@ -320,7 +262,6 @@ class FacturaDetailView(APIView):
             if not check.data:
                 return Response({'error': 'Factura no encontrada'}, status=status.HTTP_404_NOT_FOUND)
 
-            # detalle_factura se elimina en cascada (FK on delete cascade)
             supabase.table('factura').delete().eq('id', factura_id).execute()
 
             ip_cliente = obtener_ip_cliente(request)
@@ -337,13 +278,7 @@ class FacturaDetailView(APIView):
 
 
 class ConciliarFacturaView(APIView):
-    """
-    POST /api/facturas/{id}/conciliar/
-    Body: { "orden_id": int }
-
-    Compara la factura contra la orden de compra que la originó (CU36) y la
-    IA lista las diferencias. Actualiza factura.estado_conciliacion y orden_id.
-    """
+    """POST /api/facturas/{id}/conciliar/ — compara la factura contra la orden de compra que la originó."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request, factura_id):
@@ -407,7 +342,7 @@ class ConciliarFacturaView(APIView):
                 max_tokens=1000,
             )
         except IANoDisponibleError as e:
-            logger.error(f"IA no disponible para CU40 conciliación: {str(e)}")
+            logger.error(f"IA no disponible para conciliación de facturas: {str(e)}")
             return Response(
                 {'error': f'El agente de IA no está disponible: {str(e)}'},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -425,9 +360,6 @@ class ConciliarFacturaView(APIView):
         except Exception as e:
             logger.error(f"Error actualizando estado de conciliación: {str(e)}")
 
-        # Conciliar implica que la mercadería llegó: la orden se marca como
-        # 'recibida' automáticamente (salvo que estuviera cancelada), para no
-        # tener que apretar además "Marcar recibida" a mano.
         orden_recibida = False
         try:
             if orden.get('estado') != 'cancelada':
